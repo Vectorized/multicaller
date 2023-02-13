@@ -37,7 +37,7 @@ contract Multicaller {
 
     constructor() payable {
         assembly {
-            sstore(_sender.slot, 1)
+            sstore(_sender.slot, shl(160, 1))
         }
     }
 
@@ -52,7 +52,7 @@ contract Multicaller {
      */
     function sender() external view returns (address) {
         assembly {
-            mstore(0x00, shr(1, sload(_sender.slot)))
+            mstore(0x00, and(sub(shl(160, 1), 1), sload(_sender.slot)))
             return(0x00, 0x20)
         }
     }
@@ -80,15 +80,14 @@ contract Multicaller {
                 revert(0x1c, 0x04)
             }
 
-            let senderStorageValue := sload(_sender.slot)
-            if iszero(and(senderStorageValue, 1)) {
+            if iszero(and(sload(_sender.slot), shl(160, 1))) {
                 // Store the function selector of `Reentrancy()`.
                 mstore(0x00, 0xab143c06)
                 // Revert with (offset, size).
                 revert(0x1c, 0x04)
             }
             // Set the `_sender` slot temporarily for the span of this transaction.
-            sstore(_sender.slot, shl(1, caller()))
+            sstore(_sender.slot, caller())
 
             mstore(0x00, 0x20) // Store the memory offset of the `results`.
             mstore(0x20, data.length) // Store `data.length` into `results`.
@@ -146,7 +145,7 @@ contract Multicaller {
                 if iszero(lt(results, end)) { break }
             }
             // Restore the `_sender` slot.
-            sstore(_sender.slot, 1)
+            sstore(_sender.slot, shl(160, 1))
             // Direct return.
             return(0x00, add(resultsOffset, 0x40))
         }
