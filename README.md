@@ -4,7 +4,6 @@
 [![CI][ci-shield]][ci-url]
 [![MIT License][license-shield]][license-url]
 
-
 > **Warning**   
 > This repository is still under heavy construction and review. Please do not use yet.
 
@@ -44,15 +43,61 @@ To install with [**Hardhat**](https://github.com/nomiclabs/hardhat) or [**Truffl
 npm install multicaller
 ```
 
+## API
+
+### `aggregate`
+```solidity
+function aggregate(address[] calldata targets, bytes[] calldata data)
+    external
+    payable
+    returns (bytes[] memory)
+```  
+Aggregates multiple calls in a single transaction.
+
+The `msg.value` will be forwarded to the starting call.
+
+### `aggregateWithSender`
+```solidity
+function aggregateWithSender(address[] calldata targets, bytes[] calldata data)
+    external
+    payable
+    returns (bytes[] memory)
+```  
+Aggregates multiple calls in a single transaction.
+
+The `msg.value` will be forwarded to the starting call.
+
+This method will set `sender` to the `msg.sender` temporarily for the span of its execution.
+
+This method does not support reentrancy.
+
+### `sender`
+```solidity
+function sender() external view returns (address)
+```  
+Returns the address that called `aggregateWithSender` on the contract.
+
+The value is always the zero address outside a transaction.
+
+## Design
+
+The contracts are designed with a priority on efficiency and minimalism. 
+
+- Multiple input calldata arrays instead of an array of structs for more compact calldata encoding.
+
+- Omission of utility functions like `getBlockNumber` for more efficient function dispatch. If you need those functions, just add those functions into your contract, or read them off a separate utility contract like [MakerDao's Multicall](https://github.com/makerdao/multicall).
+
 ## Safety
 
 We **do not give any warranties** and **will not be liable for any loss** incurred through any use of this codebase.
 
-## Acknowledgements
+## Acknowledgments
 
 This repository is inspired by and directly modified from:
 
 - [Solady](https://github.com/vectorized/solady)
+
+- [MakerDao's Multicall](https://github.com/makerdao/multicall)
 
 
 [npm-shield]: https://img.shields.io/npm/v/multicaller.svg
