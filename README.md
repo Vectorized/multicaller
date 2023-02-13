@@ -25,12 +25,12 @@ Please open an issue if you need help to deploy to an EVM chain of your choice.
 ```ml
 src
 ├─ Multicaller.sol — "The multicaller contract"
-└─ MulticallerChecker.sol — "Library to check the sender of the multicaller contract"
+└─ MulticallerReader.sol — "Library to read the sender of the multicaller contract"
 ``` 
 
 ## Installation
 
-You can use the [`src/MulticallerChecker.sol`](./src/MulticallerChecker.sol) library in your contracts to query the Multicaller efficiently.
+You can use the [`src/MulticallerReader.sol`](./src/MulticallerReader.sol) library in your contracts to query the Multicaller efficiently.
 
 To install with [**Foundry**](https://github.com/gakonst/foundry):
 

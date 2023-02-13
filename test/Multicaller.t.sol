@@ -3,6 +3,7 @@ pragma solidity ^0.8.4;
 
 import "./utils/TestPlus.sol";
 import {Multicaller} from "../src/Multicaller.sol";
+import {MulticallerReader} from "../src/MulticallerReader.sol";
 
 interface IImmutableCreate2Factory {
     function safeCreate2(bytes32 salt, bytes calldata initializationCode)
@@ -59,7 +60,7 @@ contract MulticallerTarget {
     }
 
     function returnsMulticallerSender() external view returns (address) {
-        return _multicaller.sender();
+        return MulticallerReader.sender();
     }
 
     function name() external view returns (string memory) {
