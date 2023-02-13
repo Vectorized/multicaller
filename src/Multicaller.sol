@@ -5,7 +5,7 @@ pragma solidity ^0.8.4;
  * @title Multicaller
  * @author vectorized.eth
  * @notice Contract that allows for efficient aggregation
- * of mutliple calls in a single transaction.
+ *         of multiple calls in a single transaction.
  */
 contract Multicaller {
     // =============================================================
@@ -37,7 +37,7 @@ contract Multicaller {
 
     constructor() payable {
         assembly {
-            sstore(_sender.slot, 1)
+            sstore(_sender.slot, shl(160, 1))
         }
     }
 
@@ -52,15 +52,17 @@ contract Multicaller {
      */
     function sender() external view returns (address) {
         assembly {
-            mstore(0x00, shr(1, sload(_sender.slot)))
+            mstore(0x00, and(sub(shl(160, 1), 1), sload(_sender.slot)))
             return(0x00, 0x20)
         }
     }
 
     /**
      * @dev Aggregates multiple calls in a single transaction.
-     *      This method will set `sender` to the caller temporarily for the span
-     *      of the transaction.
+     *      The `msg.value` will be forwarded to the starting call.
+     *      This method will set `sender` to the `msg.sender` temporarily
+     *      for the span of its execution.
+     *      This method does not support reentrancy.
      * @param targets An array of addresses to call.
      * @param data    An array of calldata to forward to the targets.
      * @return An array of the returndata from each of the call.
@@ -78,15 +80,14 @@ contract Multicaller {
                 revert(0x1c, 0x04)
             }
 
-            let senderStorageValue := sload(_sender.slot)
-            if iszero(and(senderStorageValue, 1)) {
+            if iszero(and(sload(_sender.slot), shl(160, 1))) {
                 // Store the function selector of `Reentrancy()`.
                 mstore(0x00, 0xab143c06)
                 // Revert with (offset, size).
                 revert(0x1c, 0x04)
             }
             // Set the `_sender` slot temporarily for the span of this transaction.
-            sstore(_sender.slot, shl(1, caller()))
+            sstore(_sender.slot, caller())
 
             mstore(0x00, 0x20) // Store the memory offset of the `results`.
             mstore(0x20, data.length) // Store `data.length` into `results`.
@@ -100,7 +101,7 @@ contract Multicaller {
             calldatacopy(0x40, data.offset, end)
             // Pointer to the top of the memory (i.e. start of the free memory).
             let resultsOffset := end
-            // The `callvalue()` to forward to the starting call.
+            // The callvalue to forward to the starting call.
             let v := callvalue()
 
             for { end := add(results, end) } 1 {} {
@@ -115,31 +116,36 @@ contract Multicaller {
                 )
                 if iszero(
                     call(
-                        gas(), calldataload(targets.offset), v, memPtr, calldataload(o), 0x00, 0x00
+                        gas(), // Remaining gas.
+                        calldataload(targets.offset), // Address to call.
+                        v, // Amount of ETH to send.
+                        memPtr, // Start of input calldata in memory.
+                        calldataload(o), // Size of input calldata.
+                        0x00, // We will use returndatacopy instead.
+                        0x00 // We will use returndatacopy instead.
                     )
                 ) {
-                    // Bubble up the revert if the delegatecall reverts.
+                    // Bubble up the revert if the call reverts.
                     returndatacopy(0x00, 0x00, returndatasize())
                     revert(0x00, returndatasize())
                 }
-                // We only forward the `callvalue()` for the starting call.
+                // We only forward the callvalue for the starting call.
                 v := 0
                 // Advance the `targets.offset`.
                 targets.offset := add(targets.offset, 0x20)
                 // Append the current `resultsOffset` into `results`.
                 mstore(results, resultsOffset)
                 results := add(results, 0x20)
-                // Append the `returndatasize()`, and the return data.
+                // Append the returndatasize, and the return data.
                 mstore(memPtr, returndatasize())
                 returndatacopy(add(memPtr, 0x20), 0x00, returndatasize())
                 // Advance the `resultsOffset` by `returndatasize() + 0x20`,
                 // rounded up to the next multiple of 32.
-                resultsOffset :=
-                    and(add(add(resultsOffset, returndatasize()), 0x3f), 0xffffffffffffffe0)
+                resultsOffset := and(add(add(resultsOffset, returndatasize()), 0x3f), not(0x1f))
                 if iszero(lt(results, end)) { break }
             }
             // Restore the `_sender` slot.
-            sstore(_sender.slot, 1)
+            sstore(_sender.slot, shl(160, 1))
             // Direct return.
             return(0x00, add(resultsOffset, 0x40))
         }
@@ -147,6 +153,7 @@ contract Multicaller {
 
     /**
      * @dev Aggregates multiple calls in a single transaction.
+     *      The `msg.value` will be forwarded to the starting call.
      * @param targets An array of addresses to call.
      * @param data    An array of calldata to forward to the targets.
      * @return An array of the returndata from each of the call.
@@ -176,7 +183,7 @@ contract Multicaller {
             calldatacopy(0x40, data.offset, end)
             // Pointer to the top of the memory (i.e. start of the free memory).
             let resultsOffset := end
-            // The `callvalue()` to forward to the starting call.
+            // The callvalue to forward to the starting call.
             let v := callvalue()
 
             for { end := add(results, end) } 1 {} {
@@ -191,27 +198,32 @@ contract Multicaller {
                 )
                 if iszero(
                     call(
-                        gas(), calldataload(targets.offset), v, memPtr, calldataload(o), 0x00, 0x00
+                        gas(), // Remaining gas.
+                        calldataload(targets.offset), // Address to call.
+                        v, // Amount of ETH to send.
+                        memPtr, // Start of input calldata in memory.
+                        calldataload(o), // Size of input calldata.
+                        0x00, // We will use returndatacopy instead.
+                        0x00 // We will use returndatacopy instead.
                     )
                 ) {
-                    // Bubble up the revert if the delegatecall reverts.
+                    // Bubble up the revert if the call reverts.
                     returndatacopy(0x00, 0x00, returndatasize())
                     revert(0x00, returndatasize())
                 }
-                // We only forward the `callvalue()` for the starting call.
+                // We only forward the callvalue for the starting call.
                 v := 0
                 // Advance the `targets.offset`.
                 targets.offset := add(targets.offset, 0x20)
                 // Append the current `resultsOffset` into `results`.
                 mstore(results, resultsOffset)
                 results := add(results, 0x20)
-                // Append the `returndatasize()`, and the return data.
+                // Append the returndatasize, and the return data.
                 mstore(memPtr, returndatasize())
                 returndatacopy(add(memPtr, 0x20), 0x00, returndatasize())
                 // Advance the `resultsOffset` by `returndatasize() + 0x20`,
                 // rounded up to the next multiple of 32.
-                resultsOffset :=
-                    and(add(add(resultsOffset, returndatasize()), 0x3f), 0xffffffffffffffe0)
+                resultsOffset := and(add(add(resultsOffset, returndatasize()), 0x3f), not(0x1f))
                 if iszero(lt(results, end)) { break }
             }
             // Direct return.

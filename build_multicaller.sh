@@ -14,7 +14,7 @@ node .tmp/replace_imports.js;
 
 rm .tmp/foundry.toml > /dev/null 2>&1;
 
-forge build --out="out" --root=".tmp" --contracts="." --via-ir --optimize --optimizer-runs=1000000 --use=0.8.17;
+forge build --out="out" --root=".tmp" --contracts="." --via-ir --optimize --optimizer-runs=1000000 --use=0.8.18;
 
 mkdir multicaller > /dev/null 2>&1;
 
