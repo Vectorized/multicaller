@@ -59,8 +59,10 @@ contract Multicaller {
 
     /**
      * @dev Aggregates multiple calls in a single transaction.
-     *      This method will set `sender` to the caller temporarily for the span
-     *      of the transaction.
+     *      The `msg.value` will be forwarded to the starting call.
+     *      This method will set `sender` to the `msg.sender` temporarily
+     *      for the span of its execution.
+     *      This method does not support reentrancy.
      * @param targets An array of addresses to call.
      * @param data    An array of calldata to forward to the targets.
      * @return An array of the returndata from each of the call.
@@ -147,6 +149,7 @@ contract Multicaller {
 
     /**
      * @dev Aggregates multiple calls in a single transaction.
+     *      The `msg.value` will be forwarded to the starting call.
      * @param targets An array of addresses to call.
      * @param data    An array of calldata to forward to the targets.
      * @return An array of the returndata from each of the call.
