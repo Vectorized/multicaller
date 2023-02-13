@@ -96,7 +96,6 @@ We **do not give any warranties** and **will not be liable for any loss** incurr
 This repository is inspired by and directly modified from:
 
 - [Solady](https://github.com/vectorized/solady)
-
 - [MakerDao's Multicall](https://github.com/makerdao/multicall)
 
 
