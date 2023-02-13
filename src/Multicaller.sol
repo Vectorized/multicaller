@@ -5,7 +5,7 @@ pragma solidity ^0.8.4;
  * @title Multicaller
  * @author vectorized.eth
  * @notice Contract that allows for efficient aggregation
- * of mutliple calls in a single transaction.
+ *         of multiple calls in a single transaction.
  */
 contract Multicaller {
     // =============================================================

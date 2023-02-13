@@ -10,7 +10,7 @@ library MulticallerReader {
     /**
      * @dev The address of the multicaller contract.
      */
-    address internal constant MULTICALLER = 0x000000000038c0E7563281053De4b9f883417d09;
+    address internal constant MULTICALLER = 0x00000000008fD5ce001CA2A7e443AbC0B830f264;
 
     /**
      * @dev Returns the address that called `aggregateWithSender` on the multicaller.
