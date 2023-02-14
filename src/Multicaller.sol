@@ -37,7 +37,7 @@ contract Multicaller {
 
     constructor() payable {
         assembly {
-            sstore(_sender.slot, shl(160, 1))
+            sstore(returndatasize(), shl(160, 1))
         }
     }
 
@@ -52,8 +52,18 @@ contract Multicaller {
      */
     function sender() external view returns (address) {
         assembly {
-            mstore(0x00, and(sub(shl(160, 1), 1), sload(_sender.slot)))
-            return(0x00, 0x20)
+            mstore(returndatasize(), and(sub(shl(160, 1), 1), sload(returndatasize())))
+            return(returndatasize(), 0x20)
+        }
+    }
+
+    /**
+     * @dev Alternative for `sender`, for more efficient reading.
+     */
+    fallback() external payable {
+        assembly {
+            mstore(returndatasize(), and(sub(shl(160, 1), 1), sload(returndatasize())))
+            return(returndatasize(), 0x20)
         }
     }
 
@@ -75,24 +85,24 @@ contract Multicaller {
         assembly {
             if iszero(eq(targets.length, data.length)) {
                 // Store the function selector of `ArrayLengthsMismatch()`.
-                mstore(0x00, 0x3b800a46)
+                mstore(returndatasize(), 0x3b800a46)
                 // Revert with (offset, size).
                 revert(0x1c, 0x04)
             }
 
-            if iszero(and(sload(_sender.slot), shl(160, 1))) {
+            if iszero(and(sload(returndatasize()), shl(160, 1))) {
                 // Store the function selector of `Reentrancy()`.
-                mstore(0x00, 0xab143c06)
+                mstore(returndatasize(), 0xab143c06)
                 // Revert with (offset, size).
                 revert(0x1c, 0x04)
             }
             // Set the `_sender` slot temporarily for the span of this transaction.
-            sstore(_sender.slot, caller())
+            sstore(returndatasize(), caller())
 
-            mstore(0x00, 0x20) // Store the memory offset of the `results`.
+            mstore(returndatasize(), 0x20) // Store the memory offset of the `results`.
             mstore(0x20, data.length) // Store `data.length` into `results`.
             // Early return if no data.
-            if iszero(data.length) { return(0x00, 0x40) }
+            if iszero(data.length) { return(returndatasize(), 0x40) }
 
             let results := 0x40
             // `shl` 5 is equivalent to multiplying by 0x20.
@@ -136,7 +146,7 @@ contract Multicaller {
                 // Append the current `resultsOffset` into `results`.
                 mstore(results, resultsOffset)
                 results := add(results, 0x20)
-                // Append the returndatasize, and the return data.
+                // Append the returndatasize, and the returndata.
                 mstore(memPtr, returndatasize())
                 returndatacopy(add(memPtr, 0x20), 0x00, returndatasize())
                 // Advance the `resultsOffset` by `returndatasize() + 0x20`,
@@ -166,15 +176,15 @@ contract Multicaller {
         assembly {
             if iszero(eq(targets.length, data.length)) {
                 // Store the function selector of `ArrayLengthsMismatch()`.
-                mstore(0x00, 0x3b800a46)
+                mstore(returndatasize(), 0x3b800a46)
                 // Revert with (offset, size).
                 revert(0x1c, 0x04)
             }
 
-            mstore(0x00, 0x20) // Store the memory offset of the `results`.
+            mstore(returndatasize(), 0x20) // Store the memory offset of the `results`.
             mstore(0x20, data.length) // Store `data.length` into `results`.
             // Early return if no data.
-            if iszero(data.length) { return(0x00, 0x40) }
+            if iszero(data.length) { return(returndatasize(), 0x40) }
 
             let results := 0x40
             // `shl` 5 is equivalent to multiplying by 0x20.
@@ -218,7 +228,7 @@ contract Multicaller {
                 // Append the current `resultsOffset` into `results`.
                 mstore(results, resultsOffset)
                 results := add(results, 0x20)
-                // Append the returndatasize, and the return data.
+                // Append the returndatasize, and the returndata.
                 mstore(memPtr, returndatasize())
                 returndatacopy(add(memPtr, 0x20), 0x00, returndatasize())
                 // Advance the `resultsOffset` by `returndatasize() + 0x20`,
