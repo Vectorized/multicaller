@@ -4,6 +4,10 @@
 [![CI][ci-shield]][ci-url]
 [![MIT License][license-shield]][license-url]
 
+Efficiently call multiple contracts in a single transaction.
+
+Allows for optional "forwarding" of `msg.sender` to the contracts called.
+
 ## Deployments
 
 | Chain | Multicaller |
@@ -115,7 +119,7 @@ Multicaller is inspired by and directly modified from:
 - [Solady](https://github.com/vectorized/solady)
 - [MakerDao's Multicall](https://github.com/makerdao/multicall)
 
-This project is a public goods initiative of sound.xyz and Solady.
+This project is a public goods initiative of [sound.xyz](https://sound.xyz) and Solady.
 
 We would like to thank our [reviewers and contributors](credits.txt) for their invaluable help.
 
