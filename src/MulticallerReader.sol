@@ -14,7 +14,6 @@ library MulticallerReader {
 
     /**
      * @dev Returns the address that called `aggregateWithSender` on the multicaller.
-     * @return result The caller address.
      */
     function multicallerSender() internal view returns (address result) {
         /// @solidity memory-safe-assembly
@@ -41,7 +40,6 @@ library MulticallerReader {
      * @dev Returns the address that called `aggregateWithSender` on the multicaller,
      *      if `msg.sender` is the multicaller.
      *      Otherwise, returns `msg.sender`.
-     * @return result The caller address.
      */
     function sender() internal view returns (address result) {
         /// @solidity memory-safe-assembly
