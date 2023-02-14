@@ -100,7 +100,7 @@ contract Multicaller {
             calldatacopy(0x40, data.offset, end)
             // Pointer to the top of the memory (i.e. start of the free memory).
             let resultsOffset := end
-            // The offset of the last result.
+            // Pointer to the last result.
             let lastResults := add(0x20, end)
 
             for { end := add(results, end) } 1 {} {
@@ -180,7 +180,7 @@ contract Multicaller {
             calldatacopy(0x40, data.offset, end)
             // Pointer to the top of the memory (i.e. start of the free memory).
             let resultsOffset := end
-            // The offset of the last result.
+            // Pointer to the last result.
             let lastResults := add(0x20, end)
 
             for { end := add(results, end) } 1 {} {
