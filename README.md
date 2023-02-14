@@ -45,7 +45,9 @@ npm install multicaller
 
 ## API
 
-### `aggregate`
+### Multicaller
+
+#### `aggregate`
 ```solidity
 function aggregate(address[] calldata targets, bytes[] calldata data)
     external
@@ -56,7 +58,7 @@ Aggregates multiple calls in a single transaction.
 
 The `msg.value` will be forwarded to the starting call.
 
-### `aggregateWithSender`
+#### `aggregateWithSender`
 ```solidity
 function aggregateWithSender(address[] calldata targets, bytes[] calldata data)
     external
@@ -67,17 +69,35 @@ Aggregates multiple calls in a single transaction.
 
 The `msg.value` will be forwarded to the starting call.
 
-This method will set `sender` to the `msg.sender` temporarily for the span of its execution.
+This method will set the multicaller sender to the `msg.sender` temporarily for the span of its execution.
 
 This method does not support reentrancy.
 
-### `fallback`
+#### `fallback`
 ```solidity
 fallback() external payable
 ```  
 Returns the address that called `aggregateWithSender` on the contract.
 
 The value is always the zero address outside a transaction.
+
+### MulticallerReader
+
+Library to read the sender of the multicaller contract.
+
+#### `multicallerSender`
+```solidity
+function multicallerSender() internal view returns (address)
+```  
+Returns the address that called `aggregateWithSender` on the multicaller.
+
+#### `sender`
+```solidity
+function sender() internal view returns (address result)
+```  
+Returns the address that called `aggregateWithSender` on the multicaller, if `msg.sender` is the multicaller.
+
+Otherwise, returns `msg.sender`.
 
 ## Design
 
