@@ -11,10 +11,10 @@
 
 | Chain | Multicaller |
 |---|---|
-| Ethereum | [`0x00000000007CA48999F700f0Ac66A534062f73b1`](https://etherscan.io/address/0x00000000007CA48999F700f0Ac66A534062f73b1) |
-| Goerli | [`0x00000000007CA48999F700f0Ac66A534062f73b1`](https://goerli.etherscan.io/address/0x00000000007CA48999F700f0Ac66A534062f73b1) |
-| Polygon | [`0x00000000007CA48999F700f0Ac66A534062f73b1`](https://polygonscan.com/address/0x00000000007CA48999F700f0Ac66A534062f73b1) |
-| Mumbai | [`0x00000000007CA48999F700f0Ac66A534062f73b1`](https://mumbai.polygonscan.com/address/0x00000000007CA48999F700f0Ac66A534062f73b1) |
+| Ethereum | [`0x0000000000F8dd31488331c413ebF474b250AcD7`](https://etherscan.io/address/0x0000000000F8dd31488331c413ebF474b250AcD7) |
+| Goerli | [`0x0000000000F8dd31488331c413ebF474b250AcD7`](https://goerli.etherscan.io/address/0x0000000000F8dd31488331c413ebF474b250AcD7) |
+| Polygon | [`0x0000000000F8dd31488331c413ebF474b250AcD7`](https://polygonscan.com/address/0x0000000000F8dd31488331c413ebF474b250AcD7) |
+| Mumbai | [`0x0000000000F8dd31488331c413ebF474b250AcD7`](https://mumbai.polygonscan.com/address/0x0000000000F8dd31488331c413ebF474b250AcD7) |
 
 
 Please open an issue if you need help to deploy to an EVM chain of your choice.

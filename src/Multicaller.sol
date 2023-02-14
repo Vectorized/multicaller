@@ -58,7 +58,7 @@ contract Multicaller {
 
     /**
      * @dev Aggregates multiple calls in a single transaction.
-     *      The `msg.value` will be forwarded to the starting call.
+     *      The `msg.value` will be forwarded to the last call.
      *      This method will set `sender` to the `msg.sender` temporarily
      *      for the span of its execution.
      *      This method does not support reentrancy.
@@ -100,8 +100,8 @@ contract Multicaller {
             calldatacopy(0x40, data.offset, end)
             // Pointer to the top of the memory (i.e. start of the free memory).
             let resultsOffset := end
-            // The callvalue to forward to the starting call.
-            let v := callvalue()
+            // The offset of the last result.
+            let lastResults := add(0x20, end)
 
             for { end := add(results, end) } 1 {} {
                 // The offset of the current bytes in the calldata.
@@ -117,7 +117,7 @@ contract Multicaller {
                     call(
                         gas(), // Remaining gas.
                         calldataload(targets.offset), // Address to call.
-                        v, // Amount of ETH to send.
+                        mul(callvalue(), eq(results, lastResults)), // ETH to send.
                         memPtr, // Start of input calldata in memory.
                         calldataload(o), // Size of input calldata.
                         0x00, // We will use returndatacopy instead.
@@ -128,8 +128,6 @@ contract Multicaller {
                     returndatacopy(0x00, 0x00, returndatasize())
                     revert(0x00, returndatasize())
                 }
-                // We only forward the callvalue for the starting call.
-                v := 0
                 // Advance the `targets.offset`.
                 targets.offset := add(targets.offset, 0x20)
                 // Append the current `resultsOffset` into `results`.
@@ -152,7 +150,7 @@ contract Multicaller {
 
     /**
      * @dev Aggregates multiple calls in a single transaction.
-     *      The `msg.value` will be forwarded to the starting call.
+     *      The `msg.value` will be forwarded to the last call.
      * @param targets An array of addresses to call.
      * @param data    An array of calldata to forward to the targets.
      * @return An array of the returndata from each of the call.
@@ -182,8 +180,8 @@ contract Multicaller {
             calldatacopy(0x40, data.offset, end)
             // Pointer to the top of the memory (i.e. start of the free memory).
             let resultsOffset := end
-            // The callvalue to forward to the starting call.
-            let v := callvalue()
+            // The offset of the last result.
+            let lastResults := add(0x20, end)
 
             for { end := add(results, end) } 1 {} {
                 // The offset of the current bytes in the calldata.
@@ -199,7 +197,7 @@ contract Multicaller {
                     call(
                         gas(), // Remaining gas.
                         calldataload(targets.offset), // Address to call.
-                        v, // Amount of ETH to send.
+                        mul(callvalue(), eq(results, lastResults)), // ETH to send.
                         memPtr, // Start of input calldata in memory.
                         calldataload(o), // Size of input calldata.
                         0x00, // We will use returndatacopy instead.
@@ -210,8 +208,6 @@ contract Multicaller {
                     returndatacopy(0x00, 0x00, returndatasize())
                     revert(0x00, returndatasize())
                 }
-                // We only forward the callvalue for the starting call.
-                v := 0
                 // Advance the `targets.offset`.
                 targets.offset := add(targets.offset, 0x20)
                 // Append the current `resultsOffset` into `results`.
