@@ -110,11 +110,14 @@ We **do not give any warranties** and **will not be liable for any loss** incurr
 
 ## Acknowledgments
 
-This repository is inspired by and directly modified from:
+Multicaller is inspired by and directly modified from:
 
 - [Solady](https://github.com/vectorized/solady)
 - [MakerDao's Multicall](https://github.com/makerdao/multicall)
 
+This project is a public goods initiative of sound.xyz and Solady.
+
+We would like to thank our [reviewers and contributors](credits.txt) for their invaluable help.
 
 [npm-shield]: https://img.shields.io/npm/v/multicaller.svg
 [npm-url]: https://www.npmjs.com/package/multicaller
