@@ -23,20 +23,15 @@ contract Multicaller {
     error Reentrancy();
 
     // =============================================================
-    //                            STORAGE
-    // =============================================================
-
-    /**
-     * @dev The storage slot for the sender and reentrancy guard flag.
-     */
-    bytes32 private _sender;
-
-    // =============================================================
     //                          CONSTRUCTOR
     // =============================================================
 
     constructor() payable {
         assembly {
+            // Throughout this code, we will abuse returndatasize
+            // in place of zero anywhere before a call to save a bit of gas.
+            // We will use storage slot zero to store the caller at
+            // bits [0..159] and reentrancy guard flag at bit 160.
             sstore(returndatasize(), shl(160, 1))
         }
     }
@@ -64,7 +59,7 @@ contract Multicaller {
      *      This method does not support reentrancy.
      * @param targets An array of addresses to call.
      * @param data    An array of calldata to forward to the targets.
-     * @return An array of the returndata from each of the call.
+     * @return An array of the returndata from each call.
      */
     function aggregateWithSender(address[] calldata targets, bytes[] calldata data)
         external
@@ -85,7 +80,7 @@ contract Multicaller {
                 // Revert with (offset, size).
                 revert(0x1c, 0x04)
             }
-            // Set the `_sender` slot temporarily for the span of this transaction.
+            // Set the sender slot temporarily for the span of this transaction.
             sstore(returndatasize(), caller())
 
             mstore(returndatasize(), 0x20) // Store the memory offset of the `results`.
@@ -94,16 +89,18 @@ contract Multicaller {
             if iszero(data.length) { return(returndatasize(), 0x40) }
 
             let results := 0x40
-            // `shl` 5 is equivalent to multiplying by 0x20.
-            let end := shl(5, data.length)
+            // Left shift by 5 is equivalent to multiplying by 0x20.
+            data.length := shl(5, data.length)
             // Copy the offsets from calldata into memory.
-            calldatacopy(0x40, data.offset, end)
-            // Pointer to the top of the memory (i.e. start of the free memory).
-            let resultsOffset := end
+            calldatacopy(results, data.offset, data.length)
+            // Offset into `results`.
+            let resultsOffset := data.length
             // Pointer to the last result.
-            let lastResults := add(0x20, end)
+            let lastResults := add(0x20, data.length)
+            // Pointer to the end of `results`.
+            let end := add(results, data.length)
 
-            for { end := add(results, end) } 1 {} {
+            for {} 1 {} {
                 // The offset of the current bytes in the calldata.
                 let o := add(data.offset, mload(results))
                 let memPtr := add(resultsOffset, 0x40)
@@ -137,12 +134,12 @@ contract Multicaller {
                 mstore(memPtr, returndatasize())
                 returndatacopy(add(memPtr, 0x20), 0x00, returndatasize())
                 // Advance the `resultsOffset` by `returndatasize() + 0x20`,
-                // rounded up to the next multiple of 32.
+                // rounded up to the next multiple of 0x20.
                 resultsOffset := and(add(add(resultsOffset, returndatasize()), 0x3f), not(0x1f))
                 if iszero(lt(results, end)) { break }
             }
-            // Restore the `_sender` slot.
-            sstore(_sender.slot, shl(160, 1))
+            // Restore the `sender` slot.
+            sstore(0, shl(160, 1))
             // Direct return.
             return(0x00, add(resultsOffset, 0x40))
         }
@@ -153,7 +150,7 @@ contract Multicaller {
      *      The `msg.value` will be forwarded to the last call.
      * @param targets An array of addresses to call.
      * @param data    An array of calldata to forward to the targets.
-     * @return An array of the returndata from each of the call.
+     * @return An array of the returndata from each call.
      */
     function aggregate(address[] calldata targets, bytes[] calldata data)
         external
@@ -174,16 +171,18 @@ contract Multicaller {
             if iszero(data.length) { return(returndatasize(), 0x40) }
 
             let results := 0x40
-            // `shl` 5 is equivalent to multiplying by 0x20.
-            let end := shl(5, data.length)
+            // Left shift by 5 is equivalent to multiplying by 0x20.
+            data.length := shl(5, data.length)
             // Copy the offsets from calldata into memory.
-            calldatacopy(0x40, data.offset, end)
-            // Pointer to the top of the memory (i.e. start of the free memory).
-            let resultsOffset := end
+            calldatacopy(results, data.offset, data.length)
+            // Offset into `results`.
+            let resultsOffset := data.length
             // Pointer to the last result.
-            let lastResults := add(0x20, end)
+            let lastResults := add(0x20, data.length)
+            // Pointer to the end of `results`.
+            let end := add(results, data.length)
 
-            for { end := add(results, end) } 1 {} {
+            for {} 1 {} {
                 // The offset of the current bytes in the calldata.
                 let o := add(data.offset, mload(results))
                 let memPtr := add(resultsOffset, 0x40)
@@ -217,7 +216,7 @@ contract Multicaller {
                 mstore(memPtr, returndatasize())
                 returndatacopy(add(memPtr, 0x20), 0x00, returndatasize())
                 // Advance the `resultsOffset` by `returndatasize() + 0x20`,
-                // rounded up to the next multiple of 32.
+                // rounded up to the next multiple of 0x20.
                 resultsOffset := and(add(add(resultsOffset, returndatasize()), 0x3f), not(0x1f))
                 if iszero(lt(results, end)) { break }
             }

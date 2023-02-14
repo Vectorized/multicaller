@@ -4,13 +4,13 @@ pragma solidity ^0.8.4;
 /**
  * @title MulticallerReader
  * @author vectorized.eth
- * @notice Library to read the `sender` of the multicaller contract.
+ * @notice Library to read the sender of the multicaller contract.
  */
 library MulticallerReader {
     /**
      * @dev The address of the multicaller contract.
      */
-    address internal constant MULTICALLER = 0x00000000002222A40AF12b26A2b59a8fe93445a6;
+    address internal constant MULTICALLER = 0x00000000009b771dbcab5aEf782e5e85CD781eE6;
 
     /**
      * @dev Returns the address that called `aggregateWithSender` on the multicaller.
