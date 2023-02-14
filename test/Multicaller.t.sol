@@ -76,16 +76,16 @@ contract MulticallerTest is TestPlus {
         0x0000000000FFe8B47B3e2130213B802212439497;
 
     bytes public constant MULTICALLER_INITCODE =
-        hex"60806040819052600160a01b3d55610341908161001a8239f3fe604060808152600436106102ec576000803560e01c918263269d64ae14610047575050806367e404ce146100425763915b64e21461003d57386102ec565b6101f9565b6101ab565b61005036610142565b809192036100ff57602092833d5281845281156100fb57929190849060051b918281873782938734948801955b818084875187018c850199818b92359384910183378c355af1156100f257603f7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0918480859b019782815201973d90523d84606083013e3d01011692868610156100eb57939694939261007d565b5087830190f35b503d81803e3d90fd5b843df35b633b800a463d526004601cfd5b9181601f8401121561013d5782359167ffffffffffffffff831161013d576020808501948460051b01011161013d57565b600080fd5b60407ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc82011261013d5767ffffffffffffffff9160043583811161013d578261018d9160040161010c565b9390939260243591821161013d576101a79160040161010c565b9091565b3461013d5760007ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc36011261013d573d5473ffffffffffffffffffffffffffffffffffffffff163d5260203df35b61020236610142565b8092036100ff577401000000000000000000000000000000000000000092833d5416156102df57333d556020803d5283815283156102da576040939291939260051b808385378381019334915b8382518601604083019481869235938491018337600092839283928c355af1156102d2577fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe091818680603f949b019583815201953d90523d90606083013e3d01011693858310156102c6579095909390919061024f565b60408589600055016000f35b3d81803e3d90fd5b60403df35b63ab143c063d526004601cfd5b3d5473ffffffffffffffffffffffffffffffffffffffff163d5260203df3fea26469706673582212205adfe42d399a972636c40f5870c72d0b2b56a0ec84b335fbde9e024cffaf838764736f6c63430008120033";
+        hex"60806040819052600160a01b3d556102e3908161001a8239f3fe6040608081526004361061028e576000803560e01c918263269d64ae1461003757505063915b64e214610032573861028e565b61019b565b61004036610132565b809192036100ef57602092833d5281845281156100eb57929190849060051b918281873782938734948801955b818084875187018c850199818b92359384910183378c355af1156100e257603f7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0918480859b019782815201973d90523d84606083013e3d01011692868610156100db57939694939261006d565b5087830190f35b503d81803e3d90fd5b843df35b633b800a463d526004601cfd5b9181601f8401121561012d5782359167ffffffffffffffff831161012d576020808501948460051b01011161012d57565b600080fd5b60407ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc82011261012d5767ffffffffffffffff9160043583811161012d578261017d916004016100fc565b9390939260243591821161012d57610197916004016100fc565b9091565b6101a436610132565b8092036100ef577401000000000000000000000000000000000000000092833d54161561028157333d556020803d52838152831561027c576040939291939260051b808385378381019334915b8382518601604083019481869235938491018337600092839283928c355af115610274577fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe091818680603f949b019583815201953d90523d90606083013e3d010116938583101561026857909590939091906101f1565b60408589600055016000f35b3d81803e3d90fd5b60403df35b63ab143c063d526004601cfd5b3d5473ffffffffffffffffffffffffffffffffffffffff163d5260203df3fea26469706673582212202526b6f8a763d4845ccf140a15f1a51d2a854d5bc8b790b2f3445b2ab7225ba064736f6c63430008120033";
 
     bytes32 public constant MULTICALLER_INITCODEHASH =
-        0xa9f796ce796b77e3cac5cc647a066bb9f3770761978dd7b26a2ca44cf4ddaae6;
+        0x525531d8b20f9052d3415793c76da783174ab6c3280261ba9f4f8e0a7f786930;
 
     bytes32 public constant MULTICALLER_CREATE2_SALT =
-        0x00000000000000000000000000000000000000002f6d54be51b3150385bc366c;
+        0x0000000000000000000000000000000000000000eb56fd43d2817a0144674736;
 
     address public constant MULTICALLER_CREATE2_DEPLOYED_ADDRESS =
-        0x0000000000ECE0248caAa88d9D2D3d944CbCa453;
+        0x00000000007CA48999F700f0Ac66A534062f73b1;
 
     Multicaller multicaller;
 
@@ -116,7 +116,7 @@ contract MulticallerTest is TestPlus {
         multicaller.aggregate(targets, data);
         vm.expectRevert(bytes(revertMessage));
         multicaller.aggregateWithSender(targets, data);
-        assertEq(multicaller.sender(), address(0));
+        assertEq(MulticallerReader.sender(), address(0));
     }
 
     function testMulticallerRevertWithMessage() public {
@@ -132,7 +132,7 @@ contract MulticallerTest is TestPlus {
         multicaller.aggregate(targets, data);
         vm.expectRevert(MulticallerTarget.CustomError.selector);
         multicaller.aggregateWithSender(targets, data);
-        assertEq(multicaller.sender(), address(0));
+        assertEq(MulticallerReader.sender(), address(0));
     }
 
     function testMulticallerRevertWithNothing() public {
@@ -144,7 +144,7 @@ contract MulticallerTest is TestPlus {
         multicaller.aggregate(targets, data);
         vm.expectRevert();
         multicaller.aggregateWithSender(targets, data);
-        assertEq(multicaller.sender(), address(0));
+        assertEq(MulticallerReader.sender(), address(0));
     }
 
     function testMulticallerReturnDataIsProperlyEncoded(
@@ -251,7 +251,7 @@ contract MulticallerTest is TestPlus {
         );
         vm.expectRevert(Multicaller.Reentrancy.selector);
         multicaller.aggregateWithSender(targets, data);
-        assertEq(multicaller.sender(), address(0));
+        assertEq(MulticallerReader.sender(), address(0));
     }
 
     function testMulticallerTargetGetMulticallerSender() public {
@@ -270,6 +270,6 @@ contract MulticallerTest is TestPlus {
         data[0] = abi.encodeWithSelector(MulticallerTarget.returnsSender.selector);
         results = multicaller.aggregate(targets, data);
         assertEq(abi.decode(results[0], (address)), address(multicaller));
-        assertEq(multicaller.sender(), address(0));
+        assertEq(MulticallerReader.sender(), address(0));
     }
 }

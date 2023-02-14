@@ -48,17 +48,6 @@ contract Multicaller {
     /**
      * @dev Returns the address that called `aggregateWithSender` on this contract.
      *      The value is always the zero address outside a transaction.
-     * @return The caller address.
-     */
-    function sender() external view returns (address) {
-        assembly {
-            mstore(returndatasize(), and(sub(shl(160, 1), 1), sload(returndatasize())))
-            return(returndatasize(), 0x20)
-        }
-    }
-
-    /**
-     * @dev Alternative for `sender`, for more efficient reading.
      */
     fallback() external payable {
         assembly {
