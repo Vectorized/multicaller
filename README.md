@@ -4,9 +4,6 @@
 [![CI][ci-shield]][ci-url]
 [![MIT License][license-shield]][license-url]
 
-> **Warning**   
-> This repository is still under heavy construction and review. Please do not use yet.
-
 ## Deployments
 
 | Chain | Multicaller |
