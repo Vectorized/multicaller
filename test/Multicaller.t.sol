@@ -200,28 +200,25 @@ contract MulticallerTest is TestPlus {
         assertEq(abi.encode(multicaller.aggregateWithSender(targets, data)), abi.encode(results));
     }
 
-    function testMulticallerReturnDataIsProperlyEncoded(
-        string memory sIn0,
-        string memory sIn1,
-        uint256 n
-    ) public onMulticallers {
-        n = n % 2;
+    function testMulticallerReturnDataIsProperlyEncoded(string memory s0, string memory s1)
+        public
+        onMulticallers
+    {
+        uint256 n = _bound(_random(), 0, 5);
+        uint256[] memory choices = new uint256[](n);
         address[] memory targets = new address[](n);
         bytes[] memory data = new bytes[](n);
-        if (n > 0) {
-            data[0] = abi.encodeWithSelector(MulticallerTarget.returnsString.selector, sIn0);
-            targets[0] = address(targetA);
-        }
-        if (n > 1) {
-            data[1] = abi.encodeWithSelector(MulticallerTarget.returnsString.selector, sIn1);
-            targets[1] = address(targetB);
+        for (uint256 i; i < n; ++i) {
+            targets[i] = _random() % 2 == 0 ? address(targetA) : address(targetB);
+            uint256 c = _random() % 2;
+            choices[i] = c;
+            string memory s = c == 0 ? s0 : s1;
+            data[i] = abi.encodeWithSelector(MulticallerTarget.returnsString.selector, s);
         }
         bytes[] memory results = multicaller.aggregate(targets, data);
-        if (n > 0) {
-            assertEq(abi.decode(results[0], (string)), sIn0);
-        }
-        if (n > 1) {
-            assertEq(abi.decode(results[1], (string)), sIn1);
+        for (uint256 i; i < n; ++i) {
+            string memory s = choices[i] == 0 ? s0 : s1;
+            assertEq(abi.decode(results[i], (string)), s);
         }
         assertEq(abi.encode(multicaller.aggregateWithSender(targets, data)), abi.encode(results));
     }
