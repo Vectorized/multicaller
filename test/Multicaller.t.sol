@@ -200,11 +200,12 @@ contract MulticallerTest is TestPlus {
         assertEq(abi.encode(multicaller.aggregateWithSender(targets, data)), abi.encode(results));
     }
 
-    function testMulticallerReturnDataIsProperlyEncoded(string memory s0, string memory s1)
-        public
-        onMulticallers
-    {
-        uint256 n = _bound(_random(), 0, 5);
+    function testMulticallerReturnDataIsProperlyEncoded(
+        string memory s0,
+        string memory s1,
+        uint256 n
+    ) public onMulticallers {
+        n = _bound(_random(), 0, 5);
         uint256[] memory choices = new uint256[](n);
         address[] memory targets = new address[](n);
         bytes[] memory data = new bytes[](n);
