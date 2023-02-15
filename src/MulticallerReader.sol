@@ -4,7 +4,7 @@ pragma solidity ^0.8.4;
 /**
  * @title MulticallerReader
  * @author vectorized.eth
- * @notice Library to read the sender of the multicaller contract.
+ * @notice Library to read the `msg.sender` of the multicaller contract.
  */
 library MulticallerReader {
     /**
@@ -13,7 +13,7 @@ library MulticallerReader {
     address internal constant MULTICALLER = 0x00000000000066F8295B13Fb252b7f873CBBA71d;
 
     /**
-     * @dev Returns the address that called `aggregateWithSender` on the multicaller.
+     * @dev Returns the caller of `aggregateWithSender` on the multicaller.
      */
     function multicallerSender() internal view returns (address result) {
         /// @solidity memory-safe-assembly
@@ -37,8 +37,8 @@ library MulticallerReader {
     }
 
     /**
-     * @dev Returns the address that called `aggregateWithSender` on the multicaller,
-     *      if `msg.sender` is the multicaller.
+     * @dev Returns the caller of `aggregateWithSender` on the multicaller,
+     *      if the current context's `msg.sender` is the multicaller.
      *      Otherwise, returns `msg.sender`.
      */
     function sender() internal view returns (address result) {
