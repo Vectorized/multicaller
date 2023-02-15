@@ -85,7 +85,7 @@ The value is always the zero address outside a transaction.
 
 ### MulticallerReader
 
-Library to read the sender of the multicaller contract.
+Library to read the `msg.sender` of the multicaller contract.
 
 #### `multicallerSender`
 ```solidity
