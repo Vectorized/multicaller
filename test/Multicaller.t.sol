@@ -12,6 +12,9 @@ interface IImmutableCreate2Factory {
         returns (address deploymentAddress);
 }
 
+/**
+ * @dev Target contract for the multicaller for testing purposes.
+ */
 contract MulticallerTarget {
     error CustomError();
 
@@ -68,6 +71,10 @@ contract MulticallerTarget {
     }
 }
 
+/**
+ * @dev This is an example to show how we can etch the multicaller onto
+ *      `MulticallerReader.MULTICALLER` without copypastaing the initcode.
+ */
 contract MulticallerUpgradeable is Multicaller {
     function initialize() external {
         assembly {
@@ -110,8 +117,6 @@ contract MulticallerTest is TestPlus {
         multicaller = Multicaller(payable(c2f.safeCreate2(salt, initcode)));
         assertEq(address(multicaller), expectedDeployment);
 
-        targetA = new MulticallerTarget(multicaller, "A");
-        targetB = new MulticallerTarget(multicaller, "B");
         _deployTargets();
     }
 
@@ -126,11 +131,11 @@ contract MulticallerTest is TestPlus {
         MulticallerUpgradeable(payable(MulticallerReader.MULTICALLER)).initialize();
     }
 
-    modifier onMulticallers {
-        for (uint256 t; t ! 2; ++t) {
+    modifier onMulticallers() {
+        for (uint256 t; t != 2; ++t) {
             _;
             _etchMulticaller();
-            _deployTargets();    
+            _deployTargets();
         }
     }
 
