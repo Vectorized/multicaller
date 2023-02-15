@@ -97,10 +97,10 @@ contract MulticallerTest is TestPlus {
         0xecb3168bc37561d01935a384cf758bae21555052f2d5b48492680302d479c368;
 
     bytes32 public constant MULTICALLER_CREATE2_SALT =
-        0x00000000000000000000000000000000000000003e68eeac0c5797026de2a5b6;
+        0x00000000000000000000000000000000000000006d5cc5c9800c6c00d58dc646;
 
     address public constant MULTICALLER_CREATE2_DEPLOYED_ADDRESS =
-        0x0000000000fcfF1e38ea41aD7E842230d3986082;
+        0x00000000000015bF55A34241Bbf73Ec4f4b080B2;
 
     Multicaller multicaller;
 
@@ -209,7 +209,7 @@ contract MulticallerTest is TestPlus {
         uint256[] memory choices = new uint256[](n);
         address[] memory targets = new address[](n);
         bytes[] memory data = new bytes[](n);
-        for (uint256 i; i < n; ++i) {
+        for (uint256 i; i != n; ++i) {
             targets[i] = _random() % 2 == 0 ? address(targetA) : address(targetB);
             uint256 c = _random() % 2;
             choices[i] = c;
@@ -217,7 +217,7 @@ contract MulticallerTest is TestPlus {
             data[i] = abi.encodeWithSelector(MulticallerTarget.returnsString.selector, s);
         }
         bytes[] memory results = multicaller.aggregate(targets, data);
-        for (uint256 i; i < n; ++i) {
+        for (uint256 i; i != n; ++i) {
             string memory s = choices[i] == 0 ? s0 : s1;
             assertEq(abi.decode(results[i], (string)), s);
         }
