@@ -56,11 +56,11 @@ contract MulticallerTarget {
     }
 
     function returnsSender() external view returns (address) {
-        return msg.sender;
+        return MulticallerReader.sender();
     }
 
     function returnsMulticallerSender() external view returns (address) {
-        return MulticallerReader.sender();
+        return MulticallerReader.multicallerSender();
     }
 
     function name() external view returns (string memory) {
@@ -76,16 +76,16 @@ contract MulticallerTest is TestPlus {
         0x0000000000FFe8B47B3e2130213B802212439497;
 
     bytes public constant MULTICALLER_INITCODE =
-        hex"60806040819052600160a01b600055610331908161001b8239f3fe604060808152600436101561001357600080fd5b6000803560e01c918263269d64ae1461004c575050806367e404ce146100475763915b64e21461004257600080fd5b610202565b6101b0565b61005536610147565b8091920361010457602092838652818452811561010057929190849060051b918281873782938734948801955b818084875187018c850199818b92359384910183378c355af1156100f757603f7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0918480859b019782815201973d90523d84606083013e3d01011692868610156100f0579396949392610082565b5087830190f35b503d81803e3d90fd5b8486f35b633b800a4685526004601cfd5b9181601f840112156101425782359167ffffffffffffffff8311610142576020808501948460051b01011161014257565b600080fd5b60407ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc8201126101425767ffffffffffffffff91600435838111610142578261019291600401610111565b93909392602435918211610142576101ac91600401610111565b9091565b34610142576000807ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101ff57806020915473ffffffffffffffffffffffffffffffffffffffff168152f35b80fd5b61020b36610147565b9290918390036102ed57740100000000000000000000000000000000000000009160009383855416156102e05733855560209283865281845281156102db5792919060409060051b918281833782938734948401955b818084875187016040850199818b92359384910183378c355af1156100f757603f7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0918480859b019782815201973d90523d84606083013e3d01011692868610156102d0579396949392610261565b506040838983550190f35b604086f35b63ab143c0685526004601cfd5b633b800a466000526004601cfdfea2646970667358221220361324acc35acb26ed6e4ca9f66b9e8f21c556287fb7ea22ef2e2f4eb9749c9c64736f6c63430008120033";
+        hex"60806040819052600160a01b3d556102ed908161001a8239f3fe60406080815260043610610298576000803560e01c918263269d64ae1461003757505063915b64e2146100325738610298565b6101a1565b61004036610138565b809192036100f557602092833d5281845281156100f15790849392939060051b9384818737849387868201968801955b84518401958280858c8501998035918291018b37898c8a14340285355af1156100e8577fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0918480603f93019782815201973d90523d84606083013e3d01011692868610156100e15793949392610070565b5087830190f35b823d81803e3d90fd5b843df35b633b800a463d526004601cfd5b9181601f840112156101335782359167ffffffffffffffff8311610133576020808501948460051b01011161013357565b600080fd5b60407ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc8201126101335767ffffffffffffffff91600435838111610133578261018391600401610102565b939093926024359182116101335761019d91600401610102565b9091565b6101aa36610138565b8092036100f5577401000000000000000000000000000000000000000092833d54161561028b57333d556020803d528381528315610286576040939291939260051b93848385378493858301958101945b838251860193604083019480359283910186376000808093878c8814340285355af11561027d5791603f9186807fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe095019583815201953d90523d90606083013e3d010116938583101561027157939091906101fb565b60408589600055016000f35b503d81803e3d90fd5b60403df35b63ab143c063d526004601cfd5b3d5473ffffffffffffffffffffffffffffffffffffffff163d5260203df3fea2646970667358221220da74cfa2e16a9d31350a2bbc3386e777eb5a9a93517fb0a051ed5ae2c674891864736f6c63430008120033";
 
     bytes32 public constant MULTICALLER_INITCODEHASH =
-        0x3324079a1840156eeb13f064eb7754ce64967d4456e4c69a25c13c9c01a61d79;
+        0xd320b29e5184057d0ccadedea506c753adb83c5e9105cb891869502898257fcd;
 
     bytes32 public constant MULTICALLER_CREATE2_SALT =
-        0x00000000000000000000000000000000000000002380b25f4b09f2016f816edf;
+        0x000000000000000000000000000000000000000098e5442e6bbd64002cc6a9f5;
 
     address public constant MULTICALLER_CREATE2_DEPLOYED_ADDRESS =
-        0x000000000000a9797e1Bb9daD17E838ba5860A82;
+        0x00000000000066F8295B13Fb252b7f873CBBA71d;
 
     Multicaller multicaller;
 
@@ -99,7 +99,7 @@ contract MulticallerTest is TestPlus {
         bytes32 salt = MULTICALLER_CREATE2_SALT;
         bytes memory initcode = MULTICALLER_INITCODE;
         address expectedDeployment = MULTICALLER_CREATE2_DEPLOYED_ADDRESS;
-        multicaller = Multicaller(c2f.safeCreate2(salt, initcode));
+        multicaller = Multicaller(payable(c2f.safeCreate2(salt, initcode)));
         assertEq(address(multicaller), expectedDeployment);
 
         targetA = new MulticallerTarget(multicaller, "A");
@@ -116,7 +116,7 @@ contract MulticallerTest is TestPlus {
         multicaller.aggregate(targets, data);
         vm.expectRevert(bytes(revertMessage));
         multicaller.aggregateWithSender(targets, data);
-        assertEq(multicaller.sender(), address(0));
+        assertEq(MulticallerReader.multicallerSender(), address(0));
     }
 
     function testMulticallerRevertWithMessage() public {
@@ -132,7 +132,7 @@ contract MulticallerTest is TestPlus {
         multicaller.aggregate(targets, data);
         vm.expectRevert(MulticallerTarget.CustomError.selector);
         multicaller.aggregateWithSender(targets, data);
-        assertEq(multicaller.sender(), address(0));
+        assertEq(MulticallerReader.multicallerSender(), address(0));
     }
 
     function testMulticallerRevertWithNothing() public {
@@ -144,7 +144,7 @@ contract MulticallerTest is TestPlus {
         multicaller.aggregate(targets, data);
         vm.expectRevert();
         multicaller.aggregateWithSender(targets, data);
-        assertEq(multicaller.sender(), address(0));
+        assertEq(MulticallerReader.multicallerSender(), address(0));
     }
 
     function testMulticallerReturnDataIsProperlyEncoded(
@@ -218,15 +218,26 @@ contract MulticallerTest is TestPlus {
         data[2] = abi.encodeWithSelector(MulticallerTarget.pay.selector);
         data[3] = abi.encodeWithSelector(MulticallerTarget.pay.selector);
         multicaller.aggregate{value: 3}(targets, data);
-        assertEq(targetA.paid(), 3);
-        assertEq(targetB.paid(), 0);
+        multicaller.aggregateWithSender{value: 3}(targets, data);
+        assertEq(targetA.paid(), 0);
+        assertEq(targetB.paid(), 6);
+
         targets[0] = address(targetB);
         targets[1] = address(targetB);
         targets[2] = address(targetA);
         targets[3] = address(targetA);
+        multicaller.aggregate{value: 5}(targets, data);
+        multicaller.aggregateWithSender{value: 5}(targets, data);
+        assertEq(targetA.paid(), 10);
+        assertEq(targetB.paid(), 6);
+
+        targets = new address[](1);
+        targets[0] = address(targetA);
+        data = new bytes[](1);
+        data[0] = abi.encodeWithSelector(MulticallerTarget.pay.selector);
         multicaller.aggregate{value: 3}(targets, data);
-        assertEq(targetA.paid(), 3);
-        assertEq(targetB.paid(), 3);
+        multicaller.aggregateWithSender{value: 3}(targets, data);
+        assertEq(targetA.paid(), 16);
     }
 
     function testMulticallerGetNames() public {
@@ -251,7 +262,7 @@ contract MulticallerTest is TestPlus {
         );
         vm.expectRevert(Multicaller.Reentrancy.selector);
         multicaller.aggregateWithSender(targets, data);
-        assertEq(multicaller.sender(), address(0));
+        assertEq(MulticallerReader.multicallerSender(), address(0));
     }
 
     function testMulticallerTargetGetMulticallerSender() public {
@@ -259,17 +270,20 @@ contract MulticallerTest is TestPlus {
         targets[0] = address(targetA);
         bytes[] memory data = new bytes[](1);
         data[0] = abi.encodeWithSelector(MulticallerTarget.returnsMulticallerSender.selector);
+
         bytes[] memory results = multicaller.aggregateWithSender(targets, data);
         assertEq(abi.decode(results[0], (address)), address(this));
         data[0] = abi.encodeWithSelector(MulticallerTarget.returnsSender.selector);
         results = multicaller.aggregateWithSender(targets, data);
-        assertEq(abi.decode(results[0], (address)), address(multicaller));
+        assertEq(abi.decode(results[0], (address)), address(this));
+
         data[0] = abi.encodeWithSelector(MulticallerTarget.returnsMulticallerSender.selector);
         results = multicaller.aggregate(targets, data);
         assertEq(abi.decode(results[0], (address)), address(0));
         data[0] = abi.encodeWithSelector(MulticallerTarget.returnsSender.selector);
         results = multicaller.aggregate(targets, data);
-        assertEq(abi.decode(results[0], (address)), address(multicaller));
-        assertEq(multicaller.sender(), address(0));
+        assertEq(abi.decode(results[0], (address)), address(0));
+
+        assertEq(MulticallerReader.multicallerSender(), address(0));
     }
 }

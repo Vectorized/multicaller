@@ -4,18 +4,20 @@
 [![CI][ci-shield]][ci-url]
 [![MIT License][license-shield]][license-url]
 
-> **Warning**   
-> This repository is still under heavy construction and review. Please do not use yet.
+Efficiently call multiple contracts in a single transaction.
+
+Allows for optional "forwarding" of `msg.sender` to the contracts called.
 
 ## Deployments
 
 | Chain | Multicaller |
 |---|---|
-| Ethereum | [`0x000000000000a9797e1Bb9daD17E838ba5860A82`](https://etherscan.io/address/0x000000000000a9797e1Bb9daD17E838ba5860A82) |
-| Goerli | [`0x000000000000a9797e1Bb9daD17E838ba5860A82`](https://goerli.etherscan.io/address/0x000000000000a9797e1Bb9daD17E838ba5860A82) |
-| Polygon | [`0x000000000000a9797e1Bb9daD17E838ba5860A82`](https://polygonscan.com/address/0x000000000000a9797e1Bb9daD17E838ba5860A82) |
-| Mumbai | [`0x000000000000a9797e1Bb9daD17E838ba5860A82`](https://mumbai.polygonscan.com/address/0x000000000000a9797e1Bb9daD17E838ba5860A82) |
-
+| Ethereum | [`0x00000000000066F8295B13Fb252b7f873CBBA71d`](https://etherscan.io/address/0x00000000000066F8295B13Fb252b7f873CBBA71d) |
+| Goerli | [`0x00000000000066F8295B13Fb252b7f873CBBA71d`](https://goerli.etherscan.io/address/0x00000000000066F8295B13Fb252b7f873CBBA71d) |
+| Polygon | [`0x00000000000066F8295B13Fb252b7f873CBBA71d`](https://polygonscan.com/address/0x00000000000066F8295B13Fb252b7f873CBBA71d) |
+| Mumbai | [`0x00000000000066F8295B13Fb252b7f873CBBA71d`](https://mumbai.polygonscan.com/address/0x00000000000066F8295B13Fb252b7f873CBBA71d) |
+| Optimism | [`0x00000000000066F8295B13Fb252b7f873CBBA71d`](https://optimistic.etherscan.io/address/0x00000000000066F8295B13Fb252b7f873CBBA71d) |
+| Arbitrum | [`0x00000000000066F8295B13Fb252b7f873CBBA71d`](https://arbiscan.io/address/address/0x00000000000066F8295B13Fb252b7f873CBBA71d) |
 
 Please open an issue if you need help to deploy to an EVM chain of your choice.
 
@@ -24,7 +26,7 @@ Please open an issue if you need help to deploy to an EVM chain of your choice.
 ```ml
 src
 ├─ Multicaller.sol — "The multicaller contract"
-└─ MulticallerReader.sol — "Library to read the sender of the multicaller contract"
+└─ MulticallerReader.sol — "Library to read the `msg.sender` of the multicaller contract"
 ``` 
 
 ## Installation
@@ -45,7 +47,9 @@ npm install multicaller
 
 ## API
 
-### `aggregate`
+### Multicaller
+
+#### `aggregate`
 ```solidity
 function aggregate(address[] calldata targets, bytes[] calldata data)
     external
@@ -56,7 +60,7 @@ Aggregates multiple calls in a single transaction.
 
 The `msg.value` will be forwarded to the starting call.
 
-### `aggregateWithSender`
+#### `aggregateWithSender`
 ```solidity
 function aggregateWithSender(address[] calldata targets, bytes[] calldata data)
     external
@@ -67,17 +71,35 @@ Aggregates multiple calls in a single transaction.
 
 The `msg.value` will be forwarded to the starting call.
 
-This method will set `sender` to the `msg.sender` temporarily for the span of its execution.
+This method will set the multicaller sender to the `msg.sender` temporarily for the span of its execution.
 
 This method does not support reentrancy.
 
-### `sender`
+#### `fallback`
 ```solidity
-function sender() external view returns (address)
+fallback() external payable
 ```  
 Returns the address that called `aggregateWithSender` on the contract.
 
 The value is always the zero address outside a transaction.
+
+### MulticallerReader
+
+Library to read the sender of the multicaller contract.
+
+#### `multicallerSender`
+```solidity
+function multicallerSender() internal view returns (address)
+```  
+Returns the address that called `aggregateWithSender` on the multicaller.
+
+#### `sender`
+```solidity
+function sender() internal view returns (address result)
+```  
+Returns the address that called `aggregateWithSender` on the multicaller, if `msg.sender` is the multicaller.
+
+Otherwise, returns `msg.sender`.
 
 ## Design
 
@@ -93,11 +115,14 @@ We **do not give any warranties** and **will not be liable for any loss** incurr
 
 ## Acknowledgments
 
-This repository is inspired by and directly modified from:
+Multicaller is inspired by and directly modified from:
 
 - [Solady](https://github.com/vectorized/solady)
 - [MakerDao's Multicall](https://github.com/makerdao/multicall)
 
+This project is a public good initiative of [sound.xyz](https://sound.xyz) and Solady.
+
+We would like to thank our [reviewers and contributors](credits.txt) for their invaluable help.
 
 [npm-shield]: https://img.shields.io/npm/v/multicaller.svg
 [npm-url]: https://www.npmjs.com/package/multicaller
