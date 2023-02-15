@@ -134,6 +134,7 @@ contract MulticallerTest is TestPlus {
     modifier onMulticallers() {
         for (uint256 t; t != 2; ++t) {
             _;
+            assertEq(MulticallerReader.multicallerSender(), address(0));
             _etchMulticaller();
             _deployTargets();
         }
@@ -149,7 +150,6 @@ contract MulticallerTest is TestPlus {
         multicaller.aggregate(targets, data);
         vm.expectRevert(bytes(revertMessage));
         multicaller.aggregateWithSender(targets, data);
-        assertEq(MulticallerReader.multicallerSender(), address(0));
     }
 
     function testMulticallerRevertWithMessage() public {
@@ -165,7 +165,6 @@ contract MulticallerTest is TestPlus {
         multicaller.aggregate(targets, data);
         vm.expectRevert(MulticallerTarget.CustomError.selector);
         multicaller.aggregateWithSender(targets, data);
-        assertEq(MulticallerReader.multicallerSender(), address(0));
     }
 
     function testMulticallerRevertWithNothing() public onMulticallers {
@@ -177,7 +176,6 @@ contract MulticallerTest is TestPlus {
         multicaller.aggregate(targets, data);
         vm.expectRevert();
         multicaller.aggregateWithSender(targets, data);
-        assertEq(MulticallerReader.multicallerSender(), address(0));
     }
 
     function testMulticallerReturnDataIsProperlyEncoded(
@@ -237,7 +235,6 @@ contract MulticallerTest is TestPlus {
         bytes[] memory data = new bytes[](0);
         assertEq(multicaller.aggregate(targets, data).length, 0);
         assertEq(multicaller.aggregateWithSender(targets, data).length, 0);
-        assertEq(MulticallerReader.multicallerSender(), address(0));
     }
 
     function testMulticallerForwardsMessageValue() public onMulticallers {
@@ -296,7 +293,6 @@ contract MulticallerTest is TestPlus {
         );
         vm.expectRevert(Multicaller.Reentrancy.selector);
         multicaller.aggregateWithSender(targets, data);
-        assertEq(MulticallerReader.multicallerSender(), address(0));
     }
 
     function testMulticallerTargetGetMulticallerSender() public onMulticallers {
@@ -317,7 +313,5 @@ contract MulticallerTest is TestPlus {
         data[0] = abi.encodeWithSelector(MulticallerTarget.returnsSender.selector);
         results = multicaller.aggregate(targets, data);
         assertEq(abi.decode(results[0], (address)), address(0));
-
-        assertEq(MulticallerReader.multicallerSender(), address(0));
     }
 }
