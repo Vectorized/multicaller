@@ -8,9 +8,6 @@ Efficiently call multiple contracts in a single transaction.
 
 Allows for optional "forwarding" of `msg.sender` to the contracts called.
 
-> **Warning**
-> The contracts are being redeployed. Do NOT use yet.
-
 ## Deployments
 
 | Chain | Multicaller |
