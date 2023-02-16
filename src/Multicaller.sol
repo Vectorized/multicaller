@@ -80,13 +80,14 @@ contract Multicaller {
                 // Revert with (offset, size).
                 revert(0x1c, 0x04)
             }
-            // Set the sender slot temporarily for the span of this transaction.
-            sstore(returndatasize(), caller())
 
             mstore(returndatasize(), 0x20) // Store the memory offset of the `results`.
             mstore(0x20, data.length) // Store `data.length` into `results`.
             // Early return if no data.
             if iszero(data.length) { return(returndatasize(), 0x40) }
+
+            // Set the sender slot temporarily for the span of this transaction.
+            sstore(returndatasize(), caller())
 
             let results := 0x40
             // Left shift by 5 is equivalent to multiplying by 0x20.

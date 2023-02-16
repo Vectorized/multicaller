@@ -8,19 +8,16 @@ Efficiently call multiple contracts in a single transaction.
 
 Allows for optional "forwarding" of `msg.sender` to the contracts called.
 
-> **Warning**
-> The contracts are being redeployed. Do NOT use yet.
-
 ## Deployments
 
 | Chain | Multicaller |
 |---|---|
-| Ethereum | [`0x00000000000066F8295B13Fb252b7f873CBBA71d`](https://etherscan.io/address/0x00000000000066F8295B13Fb252b7f873CBBA71d) |
-| Goerli | [`0x00000000000066F8295B13Fb252b7f873CBBA71d`](https://goerli.etherscan.io/address/0x00000000000066F8295B13Fb252b7f873CBBA71d) |
-| Polygon | [`0x00000000000066F8295B13Fb252b7f873CBBA71d`](https://polygonscan.com/address/0x00000000000066F8295B13Fb252b7f873CBBA71d) |
-| Mumbai | [`0x00000000000066F8295B13Fb252b7f873CBBA71d`](https://mumbai.polygonscan.com/address/0x00000000000066F8295B13Fb252b7f873CBBA71d) |
-| Optimism | [`0x00000000000066F8295B13Fb252b7f873CBBA71d`](https://optimistic.etherscan.io/address/0x00000000000066F8295B13Fb252b7f873CBBA71d) |
-| Arbitrum | [`0x00000000000066F8295B13Fb252b7f873CBBA71d`](https://arbiscan.io/address/address/0x00000000000066F8295B13Fb252b7f873CBBA71d) |
+| Ethereum | [`0x00000000000015bF55A34241Bbf73Ec4f4b080B2`](https://etherscan.io/address/0x00000000000015bF55A34241Bbf73Ec4f4b080B2) |
+| Goerli | [`0x00000000000015bF55A34241Bbf73Ec4f4b080B2`](https://goerli.etherscan.io/address/0x00000000000015bF55A34241Bbf73Ec4f4b080B2) |
+| Polygon | [`0x00000000000015bF55A34241Bbf73Ec4f4b080B2`](https://polygonscan.com/address/0x00000000000015bF55A34241Bbf73Ec4f4b080B2) |
+| Mumbai | [`0x00000000000015bF55A34241Bbf73Ec4f4b080B2`](https://mumbai.polygonscan.com/address/0x00000000000015bF55A34241Bbf73Ec4f4b080B2) |
+| Optimism | [`0x00000000000015bF55A34241Bbf73Ec4f4b080B2`](https://optimistic.etherscan.io/address/0x00000000000015bF55A34241Bbf73Ec4f4b080B2) |
+| Arbitrum | [`0x00000000000015bF55A34241Bbf73Ec4f4b080B2`](https://arbiscan.io/address/address/0x00000000000015bF55A34241Bbf73Ec4f4b080B2) |
 
 Please open an issue if you need help to deploy to an EVM chain of your choice.
 
@@ -61,7 +58,7 @@ function aggregate(address[] calldata targets, bytes[] calldata data)
 ```  
 Aggregates multiple calls in a single transaction.
 
-The `msg.value` will be forwarded to the starting call.
+The `msg.value` will be forwarded to the last call.
 
 #### `aggregateWithSender`
 ```solidity
@@ -72,7 +69,7 @@ function aggregateWithSender(address[] calldata targets, bytes[] calldata data)
 ```  
 Aggregates multiple calls in a single transaction.
 
-The `msg.value` will be forwarded to the starting call.
+The `msg.value` will be forwarded to the last call.
 
 This method will set the multicaller sender to the `msg.sender` temporarily for the span of its execution.
 
