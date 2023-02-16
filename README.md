@@ -17,7 +17,7 @@ Allows for optional "forwarding" of `msg.sender` to the contracts called.
 | Polygon | [`0x00000000000015bF55A34241Bbf73Ec4f4b080B2`](https://polygonscan.com/address/0x00000000000015bF55A34241Bbf73Ec4f4b080B2) |
 | Mumbai | [`0x00000000000015bF55A34241Bbf73Ec4f4b080B2`](https://mumbai.polygonscan.com/address/0x00000000000015bF55A34241Bbf73Ec4f4b080B2) |
 | Optimism | [`0x00000000000015bF55A34241Bbf73Ec4f4b080B2`](https://optimistic.etherscan.io/address/0x00000000000015bF55A34241Bbf73Ec4f4b080B2) |
-| Arbitrum | [`0x00000000000015bF55A34241Bbf73Ec4f4b080B2`](https://arbiscan.io/address/address/0x00000000000015bF55A34241Bbf73Ec4f4b080B2) |
+| Arbitrum | [`0x00000000000015bF55A34241Bbf73Ec4f4b080B2`](https://arbiscan.io/address/0x00000000000015bF55A34241Bbf73Ec4f4b080B2) |
 
 Please open an issue if you need help to deploy to an EVM chain of your choice.
 
