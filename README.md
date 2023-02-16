@@ -58,7 +58,7 @@ function aggregate(address[] calldata targets, bytes[] calldata data)
 ```  
 Aggregates multiple calls in a single transaction.
 
-The `msg.value` will be forwarded to the starting call.
+The `msg.value` will be forwarded to the last call.
 
 #### `aggregateWithSender`
 ```solidity
@@ -69,7 +69,7 @@ function aggregateWithSender(address[] calldata targets, bytes[] calldata data)
 ```  
 Aggregates multiple calls in a single transaction.
 
-The `msg.value` will be forwarded to the starting call.
+The `msg.value` will be forwarded to the last call.
 
 This method will set the multicaller sender to the `msg.sender` temporarily for the span of its execution.
 
