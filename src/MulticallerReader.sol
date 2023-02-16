@@ -18,21 +18,18 @@ library MulticallerReader {
     function multicallerSender() internal view returns (address result) {
         /// @solidity memory-safe-assembly
         assembly {
-            result :=
-                mul(
-                    mload(0x00),
-                    and(
-                        eq(returndatasize(), 0x20),
-                        staticcall(
-                            gas(), // Remaining gas.
-                            MULTICALLER, // The multicaller.
-                            0x00, // Start of calldata in memory.
-                            0x00, // Length of calldata.
-                            0x00, // Start of returndata in memory.
-                            0x20 // Length of returndata.
-                        )
-                    )
+            if iszero(
+                staticcall(
+                    gas(), // Remaining gas.
+                    MULTICALLER, // The multicaller.
+                    0x00, // Start of calldata in memory.
+                    0x00, // Length of calldata.
+                    0x00, // Start of returndata in memory.
+                    0x20 // Length of returndata.
                 )
+            ) { revert(0, 0) } // For better gas estimation.
+
+            result := mul(mload(0x00), eq(returndatasize(), 0x20))
         }
     }
 
@@ -46,21 +43,18 @@ library MulticallerReader {
         assembly {
             result := caller()
             if eq(result, MULTICALLER) {
-                result :=
-                    mul(
-                        mload(0x00),
-                        and(
-                            eq(returndatasize(), 0x20),
-                            staticcall(
-                                gas(), // Remaining gas.
-                                MULTICALLER, // The multicaller.
-                                0x00, // Start of calldata in memory.
-                                0x00, // Length of calldata.
-                                0x00, // Start of returndata in memory.
-                                0x20 // Length of returndata.
-                            )
-                        )
+                if iszero(
+                    staticcall(
+                        gas(), // Remaining gas.
+                        MULTICALLER, // The multicaller.
+                        0x00, // Start of calldata in memory.
+                        0x00, // Length of calldata.
+                        0x00, // Start of returndata in memory.
+                        0x20 // Length of returndata.
                     )
+                ) { revert(0, 0) } // For better gas estimation.
+
+                result := mul(mload(0x00), eq(returndatasize(), 0x20))
             }
         }
     }
