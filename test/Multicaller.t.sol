@@ -312,4 +312,9 @@ contract MulticallerTest is TestPlus {
         results = multicaller.aggregate(targets, data);
         assertEq(abi.decode(results[0], (address)), address(0));
     }
+
+    function testMulticallerSenderDoesNotRevertWithoutMulticallerDeployed() public {
+        vm.etch(MulticallerReader.MULTICALLER, "");
+        assertEq(MulticallerReader.multicallerSender(), address(0));
+    }
 }
