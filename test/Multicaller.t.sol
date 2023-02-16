@@ -314,6 +314,7 @@ contract MulticallerTest is TestPlus {
     }
 
     function testMulticallerSenderDoesNotRevertWithoutMulticallerDeployed() public {
+        vm.etch(MulticallerReader.MULTICALLER, "");
         assertEq(MulticallerReader.multicallerSender(), address(0));
     }
 }
