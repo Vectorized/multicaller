@@ -14,6 +14,7 @@ Allows for optional "forwarding" of `msg.sender` to the contracts called.
 |---|---|
 | Ethereum | [`0x00000000000015bF55A34241Bbf73Ec4f4b080B2`](https://etherscan.io/address/0x00000000000015bF55A34241Bbf73Ec4f4b080B2) |
 | Goerli | [`0x00000000000015bF55A34241Bbf73Ec4f4b080B2`](https://goerli.etherscan.io/address/0x00000000000015bF55A34241Bbf73Ec4f4b080B2) |
+| Sepolia | [`0x00000000000015bF55A34241Bbf73Ec4f4b080B2`](https://sepolia.etherscan.io/address/0x00000000000015bF55A34241Bbf73Ec4f4b080B2) |
 | Polygon | [`0x00000000000015bF55A34241Bbf73Ec4f4b080B2`](https://polygonscan.com/address/0x00000000000015bF55A34241Bbf73Ec4f4b080B2) |
 | Mumbai | [`0x00000000000015bF55A34241Bbf73Ec4f4b080B2`](https://mumbai.polygonscan.com/address/0x00000000000015bF55A34241Bbf73Ec4f4b080B2) |
 | Optimism | [`0x00000000000015bF55A34241Bbf73Ec4f4b080B2`](https://optimistic.etherscan.io/address/0x00000000000015bF55A34241Bbf73Ec4f4b080B2) |
@@ -108,6 +109,18 @@ The contracts are designed with a priority on efficiency and minimalism.
 - Multiple input calldata arrays instead of an array of structs for more compact calldata encoding.
 
 - Omission of utility functions like `getBlockNumber` for more efficient function dispatch. If you need those functions, just add those functions into your contract, or read them off a separate utility contract like [MakerDao's Multicall](https://github.com/makerdao/multicall).
+
+## Use Cases
+
+For the following, the contracts must read the `msg.sender` from the multicaller contract.
+
+The `MulticallerReader` library can be used for efficient reading.
+
+- Calling access role restricted functions across multiple contracts in a single transaction. 
+
+- Approving a trusted operator contract to transfer tokens, and then doing the transfer in a single transaction. 
+
+  > **Warning** This will skip the approval warning on wallets. To mitigate phishing risk, you should make a custom approval function that validates a time-limited [EIP-712](https://eips.ethereum.org/EIPS/eip-712) signature signed by the `msg.sender`. 
 
 ## Safety
 
