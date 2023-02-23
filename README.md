@@ -116,11 +116,11 @@ For the following, the contracts must read the `msg.sender` from the multicaller
 
 The `MulticallerReader` library can be used for efficient reading.
 
-- Calling access role restricted functions across multiple contracts. 
+- Calling access role restricted functions across multiple contracts in a single transaction. 
 
-- Approving a trusted operator to transfer tokens, and then doing the transfer in a single transaction. 
+- Approving a trusted operator contract to transfer tokens, and then doing the transfer in a single transaction. 
 
- Warning: this will skip the approval warning on wallets. To mitigate phishing risk, you should make a custom approval function that validates a time-limited EIP-712 signature signed by the `msg.sender`. 
+  > **Warning** This will skip the approval warning on wallets. To mitigate phishing risk, you should make a custom approval function that validates a time-limited [EIP-712](https://eips.ethereum.org/EIPS/eip-712) signature signed by the `msg.sender`. 
 
 ## Safety
 
