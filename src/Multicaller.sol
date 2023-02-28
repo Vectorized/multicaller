@@ -149,6 +149,7 @@ contract Multicaller {
     /**
      * @dev Aggregates multiple calls in a single transaction.
      *      The `msg.value` will be forwarded to the last call.
+     *      This method does not support reentrancy via `aggregateWithSender`.
      * @param targets An array of addresses to call.
      * @param data    An array of calldata to forward to the targets.
      * @return An array of the returndata from each call.
@@ -162,6 +163,13 @@ contract Multicaller {
             if iszero(eq(targets.length, data.length)) {
                 // Store the function selector of `ArrayLengthsMismatch()`.
                 mstore(returndatasize(), 0x3b800a46)
+                // Revert with (offset, size).
+                revert(0x1c, 0x04)
+            }
+
+            if iszero(and(sload(returndatasize()), shl(160, 1))) {
+                // Store the function selector of `Reentrancy()`.
+                mstore(returndatasize(), 0xab143c06)
                 // Revert with (offset, size).
                 revert(0x1c, 0x04)
             }
