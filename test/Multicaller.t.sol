@@ -138,6 +138,11 @@ contract MulticallerTest is TestPlus {
             assertEq(address(multicallerWithSender), expectedDeployment);
         }
 
+        assertEq(LibMulticaller.MULTICALLER, MULTICALLER_CREATE2_DEPLOYED_ADDRESS);
+        assertEq(
+            LibMulticaller.MULTICALLER_WITH_SENDER, MULTICALLER_WITH_SENDER_CREATE2_DEPLOYED_ADDRESS
+        );
+
         _deployTargets();
     }
 
