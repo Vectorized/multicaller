@@ -28,4 +28,5 @@ lcov.info
 
 # Build files for CREATE2 deployments
 /multicaller
+/multicaller_with_sender
 .tmp
