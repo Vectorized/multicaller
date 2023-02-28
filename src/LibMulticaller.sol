@@ -2,18 +2,23 @@
 pragma solidity ^0.8.4;
 
 /**
- * @title MulticallerReader
+ * @title LibMulticaller
  * @author vectorized.eth
- * @notice Library to read the `msg.sender` of the multicaller contract.
+ * @notice Library to read the `msg.sender` of the multicaller with sender contract.
  */
-library MulticallerReader {
+library LibMulticaller {
     /**
      * @dev The address of the multicaller contract.
      */
-    address internal constant MULTICALLER = 0x00000000001927a10DD8E7Da85ccFA2D56347c3C;
+    address internal constant MULTICALLER = 0x0000000000936737d4209Bc3813ab5F11a9f72C7;
 
     /**
-     * @dev Returns the caller of `aggregateWithSender` on the multicaller.
+     * @dev The address of the multicaller with sender contract.
+     */
+    address internal constant MULTICALLER_WITH_SENDER = 0x00000000003248fcE45dFE3f5E1a15Eff24fD644;
+
+    /**
+     * @dev Returns the caller of `aggregateWithSender` on `MULTICALLER_WITH_SENDER`.
      */
     function multicallerSender() internal view returns (address result) {
         /// @solidity memory-safe-assembly
@@ -21,7 +26,7 @@ library MulticallerReader {
             if iszero(
                 staticcall(
                     gas(), // Remaining gas.
-                    MULTICALLER, // The multicaller.
+                    MULTICALLER_WITH_SENDER, // The multicaller.
                     0x00, // Start of calldata in memory.
                     0x00, // Length of calldata.
                     0x00, // Start of returndata in memory.
@@ -34,19 +39,19 @@ library MulticallerReader {
     }
 
     /**
-     * @dev Returns the caller of `aggregateWithSender` on the multicaller,
-     *      if the current context's `msg.sender` is the multicaller.
+     * @dev Returns the caller of `aggregateWithSender` on `MULTICALLER_WITH_SENDER`,
+     *      if the current context's `msg.sender` is `MULTICALLER_WITH_SENDER`.
      *      Otherwise, returns `msg.sender`.
      */
     function sender() internal view returns (address result) {
         /// @solidity memory-safe-assembly
         assembly {
             result := caller()
-            if eq(result, MULTICALLER) {
+            if eq(result, MULTICALLER_WITH_SENDER) {
                 if iszero(
                     staticcall(
                         gas(), // Remaining gas.
-                        MULTICALLER, // The multicaller.
+                        MULTICALLER_WITH_SENDER, // The multicaller with sender.
                         0x00, // Start of calldata in memory.
                         0x00, // Length of calldata.
                         0x00, // Start of returndata in memory.

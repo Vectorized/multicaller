@@ -2,12 +2,12 @@
 pragma solidity ^0.8.4;
 
 /**
- * @title Multicaller
+ * @title MulticallerWithSender
  * @author vectorized.eth
- * @notice Contract that allows for efficient aggregation
- *         of multiple calls in a single transaction.
+ * @notice Contract that allows for efficient aggregation of multiple calls
+ *         in a single transaction, while "forwarding" the `msg.sender`.
  */
-contract Multicaller {
+contract MulticallerWithSender {
     // =============================================================
     //                            ERRORS
     // =============================================================
@@ -17,19 +17,51 @@ contract Multicaller {
      */
     error ArrayLengthsMismatch();
 
+    /**
+     * @dev This function does not support reentrancy.
+     */
+    error Reentrancy();
+
+    // =============================================================
+    //                          CONSTRUCTOR
+    // =============================================================
+
+    constructor() payable {
+        assembly {
+            // Throughout this code, we will abuse returndatasize
+            // in place of zero anywhere before a call to save a bit of gas.
+            // We will use storage slot zero to store the caller at
+            // bits [0..159] and reentrancy guard flag at bit 160.
+            sstore(returndatasize(), shl(160, 1))
+        }
+    }
+
     // =============================================================
     //                    AGGREGATION OPERATIONS
     // =============================================================
 
     /**
+     * @dev Returns the address that called `aggregateWithSender` on this contract.
+     *      The value is always the zero address outside a transaction.
+     */
+    fallback() external payable {
+        assembly {
+            mstore(returndatasize(), and(sub(shl(160, 1), 1), sload(returndatasize())))
+            return(returndatasize(), 0x20)
+        }
+    }
+
+    /**
      * @dev Aggregates multiple calls in a single transaction.
      *      The `msg.value` will be forwarded to the last call.
-     *      This method does not support reentrancy via `aggregateWithSender`.
+     *      This method will set `sender` to the `msg.sender` temporarily
+     *      for the span of its execution.
+     *      This method does not support reentrancy.
      * @param targets An array of addresses to call.
      * @param data    An array of calldata to forward to the targets.
      * @return An array of the returndata from each call.
      */
-    function aggregate(address[] calldata targets, bytes[] calldata data)
+    function aggregateWithSender(address[] calldata targets, bytes[] calldata data)
         external
         payable
         returns (bytes[] memory)
@@ -42,10 +74,20 @@ contract Multicaller {
                 revert(0x1c, 0x04)
             }
 
+            if iszero(and(sload(returndatasize()), shl(160, 1))) {
+                // Store the function selector of `Reentrancy()`.
+                mstore(returndatasize(), 0xab143c06)
+                // Revert with (offset, size).
+                revert(0x1c, 0x04)
+            }
+
             mstore(returndatasize(), 0x20) // Store the memory offset of the `results`.
             mstore(0x20, data.length) // Store `data.length` into `results`.
             // Early return if no data.
             if iszero(data.length) { return(returndatasize(), 0x40) }
+
+            // Set the sender slot temporarily for the span of this transaction.
+            sstore(returndatasize(), caller())
 
             let results := 0x40
             // Left shift by 5 is equivalent to multiplying by 0x20.
@@ -97,6 +139,8 @@ contract Multicaller {
                 resultsOffset := and(add(add(resultsOffset, returndatasize()), 0x3f), not(0x1f))
                 if iszero(lt(results, end)) { break }
             }
+            // Restore the `sender` slot.
+            sstore(0, shl(160, 1))
             // Direct return.
             return(0x00, add(resultsOffset, 0x40))
         }
