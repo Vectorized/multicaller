@@ -6,19 +6,19 @@
 
 Efficiently call multiple contracts in a single transaction.
 
-Allows for optional "forwarding" of `msg.sender` to the contracts called.
+Optionally "forwards" `msg.sender` to the contracts called.
 
 ## Deployments
 
-| Chain | Multicaller |
+| Chain | Multicaller | MulticallerWithSender |
 |---|---|
-| Ethereum | [`0x00000000000015bF55A34241Bbf73Ec4f4b080B2`](https://etherscan.io/address/0x00000000000015bF55A34241Bbf73Ec4f4b080B2) |
-| Goerli | [`0x00000000000015bF55A34241Bbf73Ec4f4b080B2`](https://goerli.etherscan.io/address/0x00000000000015bF55A34241Bbf73Ec4f4b080B2) |
-| Sepolia | [`0x00000000000015bF55A34241Bbf73Ec4f4b080B2`](https://sepolia.etherscan.io/address/0x00000000000015bF55A34241Bbf73Ec4f4b080B2) |
-| Polygon | [`0x00000000000015bF55A34241Bbf73Ec4f4b080B2`](https://polygonscan.com/address/0x00000000000015bF55A34241Bbf73Ec4f4b080B2) |
-| Mumbai | [`0x00000000000015bF55A34241Bbf73Ec4f4b080B2`](https://mumbai.polygonscan.com/address/0x00000000000015bF55A34241Bbf73Ec4f4b080B2) |
-| Optimism | [`0x00000000000015bF55A34241Bbf73Ec4f4b080B2`](https://optimistic.etherscan.io/address/0x00000000000015bF55A34241Bbf73Ec4f4b080B2) |
-| Arbitrum | [`0x00000000000015bF55A34241Bbf73Ec4f4b080B2`](https://arbiscan.io/address/0x00000000000015bF55A34241Bbf73Ec4f4b080B2) |
+| Ethereum | [`0x0000000000e00b934df5E876c6CbE7fDAfc253A6`](https://etherscan.io/address/0x0000000000e00b934df5E876c6CbE7fDAfc253A6) | [`0x00000000000015bF55A34241Bbf73Ec4f4b080B2`](https://etherscan.io/address/0x00000000000015bF55A34241Bbf73Ec4f4b080B2) |
+| Goerli | [`0x0000000000e00b934df5E876c6CbE7fDAfc253A6`](https://goerli.etherscan.io/address/0x0000000000e00b934df5E876c6CbE7fDAfc253A6) | [`0x00000000000015bF55A34241Bbf73Ec4f4b080B2`](https://goerli.etherscan.io/address/0x00000000000015bF55A34241Bbf73Ec4f4b080B2) |
+| Sepolia | [`0x0000000000e00b934df5E876c6CbE7fDAfc253A6`](https://sepolia.etherscan.io/address/0x0000000000e00b934df5E876c6CbE7fDAfc253A6) | [`0x00000000000015bF55A34241Bbf73Ec4f4b080B2`](https://sepolia.etherscan.io/address/0x00000000000015bF55A34241Bbf73Ec4f4b080B2) |
+| Polygon | [`0x0000000000e00b934df5E876c6CbE7fDAfc253A6`](https://polygonscan.com/address/0x0000000000e00b934df5E876c6CbE7fDAfc253A6) | [`0x00000000000015bF55A34241Bbf73Ec4f4b080B2`](https://polygonscan.com/address/0x00000000000015bF55A34241Bbf73Ec4f4b080B2) |
+| Mumbai | [`0x0000000000e00b934df5E876c6CbE7fDAfc253A6`](https://mumbai.polygonscan.com/address/0x0000000000e00b934df5E876c6CbE7fDAfc253A6) | [`0x00000000000015bF55A34241Bbf73Ec4f4b080B2`](https://mumbai.polygonscan.com/address/0x00000000000015bF55A34241Bbf73Ec4f4b080B2) |
+| Optimism | [`0x0000000000e00b934df5E876c6CbE7fDAfc253A6`](https://optimistic.etherscan.io/address/0x0000000000e00b934df5E876c6CbE7fDAfc253A6) | [`0x00000000000015bF55A34241Bbf73Ec4f4b080B2`](https://optimistic.etherscan.io/address/0x00000000000015bF55A34241Bbf73Ec4f4b080B2) |
+| Arbitrum | [`0x0000000000e00b934df5E876c6CbE7fDAfc253A6`](https://arbiscan.io/address/0x0000000000e00b934df5E876c6CbE7fDAfc253A6) | [`0x00000000000015bF55A34241Bbf73Ec4f4b080B2`](https://arbiscan.io/address/0x00000000000015bF55A34241Bbf73Ec4f4b080B2) |
 
 Please open an issue if you need help to deploy to an EVM chain of your choice.
 
@@ -27,12 +27,13 @@ Please open an issue if you need help to deploy to an EVM chain of your choice.
 ```ml
 src
 ├─ Multicaller.sol — "The multicaller contract"
-└─ MulticallerReader.sol — "Library to read the `msg.sender` of the multicaller contract"
+├─ MulticallerWithSender.sol — "The multicaller with sender contract"
+└─ LibMulticaller.sol — "Library to read the multicaller with sender contract"
 ``` 
 
 ## Installation
 
-You can use the [`src/MulticallerReader.sol`](./src/MulticallerReader.sol) library in your contracts to query the Multicaller efficiently.
+You can use the [`src/LibMulticaller.sol`](./src/LibMulticaller.sol) library in your contracts to query the multicaller with sender contract efficiently.
 
 To install with [**Foundry**](https://github.com/gakonst/foundry):
 
@@ -61,6 +62,8 @@ Aggregates multiple calls in a single transaction.
 
 The `msg.value` will be forwarded to the last call.
 
+### MulticallerWithSender
+
 #### `aggregateWithSender`
 ```solidity
 function aggregateWithSender(address[] calldata targets, bytes[] calldata data)
@@ -84,21 +87,21 @@ Returns the address that called `aggregateWithSender` on the contract.
 
 The value is always the zero address outside a transaction.
 
-### MulticallerReader
+### LibMulticaller
 
-Library to read the `msg.sender` of the multicaller contract.
+Library to read the multicaller with sender contract.
 
 #### `multicallerSender`
 ```solidity
 function multicallerSender() internal view returns (address)
 ```  
-Returns the address that called `aggregateWithSender` on the multicaller.
+Returns the address that called `aggregateWithSender` on the multicaller with sender contract.
 
 #### `sender`
 ```solidity
 function sender() internal view returns (address result)
 ```  
-Returns the address that called `aggregateWithSender` on the multicaller, if `msg.sender` is the multicaller.
+Returns the address that called `aggregateWithSender` on the multicaller with sender contract, if `msg.sender` is the multicaller with sender contract.
 
 Otherwise, returns `msg.sender`.
 
@@ -114,7 +117,7 @@ The contracts are designed with a priority on efficiency and minimalism.
 
 For the following, the contracts called must read the `msg.sender` from the multicaller contract. 
 
-The `MulticallerReader` library can be used for efficient reading.
+The `LibMulticaller` library can be used for efficient reading.
 
 **Example use cases:**
 

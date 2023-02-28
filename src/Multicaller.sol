@@ -24,7 +24,6 @@ contract Multicaller {
     /**
      * @dev Aggregates multiple calls in a single transaction.
      *      The `msg.value` will be forwarded to the last call.
-     *      This method does not support reentrancy via `aggregateWithSender`.
      * @param targets An array of addresses to call.
      * @param data    An array of calldata to forward to the targets.
      * @return An array of the returndata from each call.
