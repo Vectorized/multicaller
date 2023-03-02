@@ -75,9 +75,9 @@ This method will set the multicaller sender to the `msg.sender` temporarily for 
 
 This method does not support reentrancy.
 
-#### `fallback`
+#### `receive`
 ```solidity
-fallback() external payable
+receive() external payable
 ```  
 Returns the address that called `aggregateWithSender` on the contract.
 
