@@ -44,7 +44,7 @@ contract MulticallerWithSender {
      * @dev Returns the address that called `aggregateWithSender` on this contract.
      *      The value is always the zero address outside a transaction.
      */
-    fallback() external payable {
+    receive() external payable {
         assembly {
             mstore(returndatasize(), and(sub(shl(160, 1), 1), sload(returndatasize())))
             return(returndatasize(), 0x20)
@@ -53,21 +53,21 @@ contract MulticallerWithSender {
 
     /**
      * @dev Aggregates multiple calls in a single transaction.
-     *      The `msg.value` will be forwarded to the last call.
      *      This method will set `sender` to the `msg.sender` temporarily
      *      for the span of its execution.
      *      This method does not support reentrancy.
      * @param targets An array of addresses to call.
      * @param data    An array of calldata to forward to the targets.
+     * @param values  How much ETH to forward to each target.
      * @return An array of the returndata from each call.
      */
-    function aggregateWithSender(address[] calldata targets, bytes[] calldata data)
-        external
-        payable
-        returns (bytes[] memory)
-    {
+    function aggregateWithSender(
+        address[] calldata targets,
+        bytes[] calldata data,
+        uint256[] calldata values
+    ) external payable returns (bytes[] memory) {
         assembly {
-            if iszero(eq(targets.length, data.length)) {
+            if iszero(and(eq(targets.length, data.length), eq(data.length, values.length))) {
                 // Store the function selector of `ArrayLengthsMismatch()`.
                 mstore(returndatasize(), 0x3b800a46)
                 // Revert with (offset, size).
@@ -96,10 +96,9 @@ contract MulticallerWithSender {
             calldatacopy(results, data.offset, data.length)
             // Offset into `results`.
             let resultsOffset := data.length
-            // Pointer to the last result.
-            let lastResults := add(0x20, data.length)
             // Pointer to the end of `results`.
-            let end := add(results, data.length)
+            // Recycle `data.length` to avoid stack too deep.
+            data.length := add(results, data.length)
 
             for {} 1 {} {
                 // The offset of the current bytes in the calldata.
@@ -115,7 +114,7 @@ contract MulticallerWithSender {
                     call(
                         gas(), // Remaining gas.
                         calldataload(targets.offset), // Address to call.
-                        mul(callvalue(), eq(results, lastResults)), // ETH to send.
+                        calldataload(values.offset), // ETH to send.
                         memPtr, // Start of input calldata in memory.
                         calldataload(o), // Size of input calldata.
                         0x00, // We will use returndatacopy instead.
@@ -128,6 +127,8 @@ contract MulticallerWithSender {
                 }
                 // Advance the `targets.offset`.
                 targets.offset := add(targets.offset, 0x20)
+                // Advance the `values.offset`.
+                values.offset := add(values.offset, 0x20)
                 // Append the current `resultsOffset` into `results`.
                 mstore(results, resultsOffset)
                 results := add(results, 0x20)
@@ -137,7 +138,7 @@ contract MulticallerWithSender {
                 // Advance the `resultsOffset` by `returndatasize() + 0x20`,
                 // rounded up to the next multiple of 0x20.
                 resultsOffset := and(add(add(resultsOffset, returndatasize()), 0x3f), not(0x1f))
-                if iszero(lt(results, end)) { break }
+                if iszero(lt(results, data.length)) { break }
             }
             // Restore the `sender` slot.
             sstore(0, shl(160, 1))

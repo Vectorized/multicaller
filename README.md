@@ -12,13 +12,13 @@ Enables "forwarding" of `msg.sender` to the contracts called.
 
 | Chain | Multicaller | MulticallerWithSender |
 |---|---|---|
-| Ethereum | [`0x0000000000Fb21e1322c03884Aa754002339F983`](https://etherscan.io/address/0x0000000000Fb21e1322c03884Aa754002339F983) | [`0x0000000000D593850Ac7C4ff4D944DD8081abdB1`](https://etherscan.io/address/0x0000000000D593850Ac7C4ff4D944DD8081abdB1) |
-| Goerli | [`0x0000000000Fb21e1322c03884Aa754002339F983`](https://goerli.etherscan.io/address/0x0000000000Fb21e1322c03884Aa754002339F983) | [`0x0000000000D593850Ac7C4ff4D944DD8081abdB1`](https://goerli.etherscan.io/address/0x0000000000D593850Ac7C4ff4D944DD8081abdB1) |
-| Sepolia | [`0x0000000000Fb21e1322c03884Aa754002339F983`](https://sepolia.etherscan.io/address/0x0000000000Fb21e1322c03884Aa754002339F983) | [`0x0000000000D593850Ac7C4ff4D944DD8081abdB1`](https://sepolia.etherscan.io/address/0x0000000000D593850Ac7C4ff4D944DD8081abdB1) |
-| Polygon | [`0x0000000000Fb21e1322c03884Aa754002339F983`](https://polygonscan.com/address/0x0000000000Fb21e1322c03884Aa754002339F983) | [`0x0000000000D593850Ac7C4ff4D944DD8081abdB1`](https://polygonscan.com/address/0x0000000000D593850Ac7C4ff4D944DD8081abdB1) |
-| Mumbai | [`0x0000000000Fb21e1322c03884Aa754002339F983`](https://mumbai.polygonscan.com/address/0x0000000000Fb21e1322c03884Aa754002339F983) | [`0x0000000000D593850Ac7C4ff4D944DD8081abdB1`](https://mumbai.polygonscan.com/address/0x0000000000D593850Ac7C4ff4D944DD8081abdB1) |
-| Optimism | [`0x0000000000Fb21e1322c03884Aa754002339F983`](https://optimistic.etherscan.io/address/0x0000000000Fb21e1322c03884Aa754002339F983) | [`0x0000000000D593850Ac7C4ff4D944DD8081abdB1`](https://optimistic.etherscan.io/address/0x0000000000D593850Ac7C4ff4D944DD8081abdB1) |
-| Arbitrum | [`0x0000000000Fb21e1322c03884Aa754002339F983`](https://arbiscan.io/address/0x0000000000Fb21e1322c03884Aa754002339F983) | [`0x0000000000D593850Ac7C4ff4D944DD8081abdB1`](https://arbiscan.io/address/0x0000000000D593850Ac7C4ff4D944DD8081abdB1) |
+| Ethereum | [`0x000000000088228fCF7b8af41Faf3955bD0B3A41`](https://etherscan.io/address/0x000000000088228fCF7b8af41Faf3955bD0B3A41) | [`0x00000000002Fd5Aeb385D324B580FCa7c83823A0`](https://etherscan.io/address/0x00000000002Fd5Aeb385D324B580FCa7c83823A0) |
+| Goerli | [`0x000000000088228fCF7b8af41Faf3955bD0B3A41`](https://goerli.etherscan.io/address/0x000000000088228fCF7b8af41Faf3955bD0B3A41) | [`0x00000000002Fd5Aeb385D324B580FCa7c83823A0`](https://goerli.etherscan.io/address/0x00000000002Fd5Aeb385D324B580FCa7c83823A0) |
+| Sepolia | [`0x000000000088228fCF7b8af41Faf3955bD0B3A41`](https://sepolia.etherscan.io/address/0x000000000088228fCF7b8af41Faf3955bD0B3A41) | [`0x00000000002Fd5Aeb385D324B580FCa7c83823A0`](https://sepolia.etherscan.io/address/0x00000000002Fd5Aeb385D324B580FCa7c83823A0) |
+| Polygon | [`0x000000000088228fCF7b8af41Faf3955bD0B3A41`](https://polygonscan.com/address/0x000000000088228fCF7b8af41Faf3955bD0B3A41) | [`0x00000000002Fd5Aeb385D324B580FCa7c83823A0`](https://polygonscan.com/address/0x00000000002Fd5Aeb385D324B580FCa7c83823A0) |
+| Mumbai | [`0x000000000088228fCF7b8af41Faf3955bD0B3A41`](https://mumbai.polygonscan.com/address/0x000000000088228fCF7b8af41Faf3955bD0B3A41) | [`0x00000000002Fd5Aeb385D324B580FCa7c83823A0`](https://mumbai.polygonscan.com/address/0x00000000002Fd5Aeb385D324B580FCa7c83823A0) |
+| Optimism | [`0x000000000088228fCF7b8af41Faf3955bD0B3A41`](https://optimistic.etherscan.io/address/0x000000000088228fCF7b8af41Faf3955bD0B3A41) | [`0x00000000002Fd5Aeb385D324B580FCa7c83823A0`](https://optimistic.etherscan.io/address/0x00000000002Fd5Aeb385D324B580FCa7c83823A0) |
+| Arbitrum | [`0x000000000088228fCF7b8af41Faf3955bD0B3A41`](https://arbiscan.io/address/0x000000000088228fCF7b8af41Faf3955bD0B3A41) | [`0x00000000002Fd5Aeb385D324B580FCa7c83823A0`](https://arbiscan.io/address/0x00000000002Fd5Aeb385D324B580FCa7c83823A0) |
 
 Please open an issue if you need help to deploy to an EVM chain of your choice.
 
@@ -53,35 +53,31 @@ npm install multicaller
 
 #### `aggregate`
 ```solidity
-function aggregate(address[] calldata targets, bytes[] calldata data)
+function aggregate(address[] calldata targets, bytes[] calldata data, uint256[] calldata values)
     external
     payable
     returns (bytes[] memory)
 ```  
 Aggregates multiple calls in a single transaction.
-
-The `msg.value` will be forwarded to the last call.
 
 ### MulticallerWithSender
 
 #### `aggregateWithSender`
 ```solidity
-function aggregateWithSender(address[] calldata targets, bytes[] calldata data)
+function aggregateWithSender(address[] calldata targets, bytes[] calldata data, uint256[] calldata values)
     external
     payable
     returns (bytes[] memory)
 ```  
 Aggregates multiple calls in a single transaction.
 
-The `msg.value` will be forwarded to the last call.
-
 This method will set the multicaller sender to the `msg.sender` temporarily for the span of its execution.
 
 This method does not support reentrancy.
 
-#### `fallback`
+#### `receive`
 ```solidity
-fallback() external payable
+receive() external payable
 ```  
 Returns the address that called `aggregateWithSender` on the contract.
 
