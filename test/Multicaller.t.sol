@@ -63,6 +63,12 @@ contract MulticallerTarget {
     }
 }
 
+contract FallbackTarget {
+    fallback() external payable {}
+
+    receive() external payable {}
+}
+
 /**
  * @dev This is an example to show how we can etch the multicaller onto
  *      `LibMulticaller.MULTICALLER` without copypastaing the initcode.
@@ -102,9 +108,13 @@ contract MulticallerTest is TestPlus {
 
     Multicaller multicaller;
     MulticallerWithSender multicallerWithSender;
+    MulticallerWithSigner multicallerWithSigner;
 
     MulticallerTarget targetA;
     MulticallerTarget targetB;
+
+    FallbackTarget fallbackTargetA;
+    FallbackTarget fallbackTargetB;
 
     event NoncesInvalidated(address indexed signer, uint256[] nonces);
 
@@ -132,12 +142,16 @@ contract MulticallerTest is TestPlus {
             LibMulticaller.MULTICALLER_WITH_SENDER, MULTICALLER_WITH_SENDER_CREATE2_DEPLOYED_ADDRESS
         );
 
+        multicallerWithSigner = new MulticallerWithSigner();
+
         _deployTargets();
     }
 
     function _deployTargets() internal virtual {
         targetA = new MulticallerTarget("A");
         targetB = new MulticallerTarget("B");
+        fallbackTargetA = new FallbackTarget();
+        fallbackTargetB = new FallbackTarget();
     }
 
     function _etchMulticallerWithSender() internal virtual {
@@ -355,21 +369,64 @@ contract MulticallerTest is TestPlus {
         assertEq(LibMulticaller.multicallerSender(), address(0));
     }
 
-    function testMulticallerWithSignerComputeDigestDifferential(
-        address[] memory targets,
-        bytes[] memory data,
-        uint256[] memory values,
-        uint256 nonce,
-        uint256 nonceSalt
-    ) public {
-        MulticallerWithSigner multicallerWithSigner = new MulticallerWithSigner();
-        bytes32 expected;
-        unchecked {
-            bytes32[] memory dataHashes = new bytes32[](data.length);
-            for (uint256 i; i < data.length; ++i) {
-                dataHashes[i] = keccak256(data[i]);
+    struct _TestTemps {
+        address[] targets;
+        bytes[] data;
+        uint256[] values;
+        uint256 nonce;
+        uint256 nonceSalt;
+        bytes signature;
+        address signer;
+        uint256 privateKey;
+    }
+
+    function _randomBytes() internal returns (bytes memory result) {
+        uint256 r0 = _random();
+        uint256 r1 = _random();
+        uint256 r2 = _random();
+        uint256 r3 = _random();
+        uint256 n = _random() % 128;
+        assembly {
+            result := mload(0x40)
+            mstore(result, n)
+            mstore(add(result, 0x20), r0)
+            mstore(add(result, 0x40), r1)
+            mstore(add(result, 0x60), r2)
+            mstore(add(result, 0x80), r3)
+            mstore(0x40, add(result, 0xa0))
+        }
+    }
+
+    function _testTemps() internal returns (_TestTemps memory t) {
+        (t.signer, t.privateKey) = _randomSigner();
+
+        uint256 n = _random() % 3; // 0, 1, 2
+        t.targets = new address[](n);
+        t.data = new bytes[](n);
+        t.values = new uint256[](n);
+        for (uint256 i; i < n; ++i) {
+            t.targets[i] = _random() % 2 == 0 ? address(fallbackTargetA) : address(fallbackTargetB);
+            t.data[i] = _randomBytes();
+            t.values[i] = _random() % 32;
+        }
+        t.nonce = _random();
+
+        {
+            uint256 nonceSalt = _random() % 2;
+            for (uint256 i; i < nonceSalt; ++i) {
+                vm.prank(t.signer);
+                multicallerWithSigner.incrementNonceSalt();
             }
-            expected = keccak256(
+            t.nonceSalt = multicallerWithSigner.nonceSaltOf(t.signer);
+            assertEq(t.nonceSalt, nonceSalt);
+        }
+
+        unchecked {
+            bytes32[] memory dataHashes = new bytes32[](t.data.length);
+            for (uint256 i; i < t.data.length; ++i) {
+                dataHashes[i] = keccak256(t.data[i]);
+            }
+            bytes32 digest = keccak256(
                 abi.encodePacked(
                     "\x19\x01",
                     keccak256(
@@ -388,24 +445,67 @@ contract MulticallerTest is TestPlus {
                             keccak256(
                                 "AggregateWithSigner(address[] targets,bytes[] data,uint256[] values,uint256 nonce,uint256 nonceSalt)"
                             ),
-                            keccak256(abi.encodePacked(targets)),
+                            keccak256(abi.encodePacked(t.targets)),
                             keccak256(abi.encodePacked(dataHashes)),
-                            keccak256(abi.encodePacked(values)),
-                            nonce,
-                            nonceSalt
+                            keccak256(abi.encodePacked(t.values)),
+                            t.nonce,
+                            t.nonceSalt
                         )
                     )
                 )
             );
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(t.privateKey, digest);
+            t.signature = abi.encodePacked(r, s, v);
         }
-        assertEq(
-            multicallerWithSigner.computeDigest(targets, data, values, nonce, nonceSalt), expected
-        );
     }
+
+    function testMulticallerWithSignerV(uint256) public {
+        _TestTemps memory t = _testTemps();
+
+        vm.deal(address(this), type(uint160).max);
+        bytes[] memory results = multicallerWithSigner.aggregateWithSigner{
+            value: address(this).balance
+        }(t.targets, t.data, t.values, t.nonce, t.nonceSalt, t.signer, t.signature);
+    }
+
+    // function testMulticallerWithSignerComputeDigestDifferential(
+    //     address[] memory targets,
+    //     bytes[] memory data,
+    //     uint256[] memory values,
+    //     uint256 nonce,
+    //     uint256 nonceSalt) public
+    // {
+    //     MulticallerWithSigner multicallerWithSigner = new MulticallerWithSigner();
+    //     bytes32 expected;
+    //     unchecked {
+    //         bytes32[] memory dataHashes = new bytes32[](data.length);
+    //         for (uint i; i < data.length; ++i) {
+    //             dataHashes[i] = keccak256(data[i]);
+    //         }
+    //         expected = keccak256(abi.encodePacked(
+    //             "\x19\x01",
+    //             keccak256(abi.encode(
+    //                 keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
+    //                 keccak256("MulticallerWithSigner"),
+    //                 keccak256("1"),
+    //                 block.chainid,
+    //                 address(multicallerWithSigner)
+    //             )),
+    //             keccak256(abi.encode(
+    //                 keccak256("AggregateWithSigner(address[] targets,bytes[] data,uint256[] values,uint256 nonce,uint256 nonceSalt)"),
+    //                 keccak256(abi.encodePacked(targets)),
+    //                 keccak256(abi.encodePacked(dataHashes)),
+    //                 keccak256(abi.encodePacked(values)),
+    //                 nonce,
+    //                 nonceSalt
+    //             ))
+    //         ));
+    //     }
+    //     assertEq(multicallerWithSigner.computeDigest(targets, data, values, nonce, nonceSalt), expected);
+    // }
 
     function testMulticallerWithSignerInvalidateNonces(uint256) public {
         unchecked {
-            MulticallerWithSigner multicallerWithSigner = new MulticallerWithSigner();
             uint256[] memory nonces = new uint256[](_random() % 4);
             if (_random() % 2 == 0) {
                 for (uint256 i; i < nonces.length; ++i) {
