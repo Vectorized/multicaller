@@ -4,6 +4,7 @@ pragma solidity ^0.8.4;
 import "./utils/TestPlus.sol";
 import {Multicaller} from "../src/Multicaller.sol";
 import {MulticallerWithSender} from "../src/MulticallerWithSender.sol";
+import {MulticallerWithSigner} from "../src/MulticallerWithSigner.sol";
 import {LibMulticaller} from "../src/LibMulticaller.sol";
 
 /**
@@ -104,6 +105,10 @@ contract MulticallerTest is TestPlus {
 
     MulticallerTarget targetA;
     MulticallerTarget targetB;
+
+    event NoncesInvalidated(address indexed signer, uint256[] nonces);
+
+    event NonceSaltIncremented(address indexed signer, uint256 newNonceSalt);
 
     function setUp() public virtual {
         {
@@ -348,5 +353,103 @@ contract MulticallerTest is TestPlus {
     function testMulticallerSenderDoesNotRevertWithoutMulticallerDeployed() public {
         vm.etch(LibMulticaller.MULTICALLER_WITH_SENDER, "");
         assertEq(LibMulticaller.multicallerSender(), address(0));
+    }
+
+    function testMulticallerWithSignerComputeDigestDifferential(
+        address[] memory targets,
+        bytes[] memory data,
+        uint256[] memory values,
+        uint256 nonce,
+        uint256 nonceSalt
+    ) public {
+        MulticallerWithSigner multicallerWithSigner = new MulticallerWithSigner();
+        bytes32 expected;
+        unchecked {
+            bytes32[] memory dataHashes = new bytes32[](data.length);
+            for (uint256 i; i < data.length; ++i) {
+                dataHashes[i] = keccak256(data[i]);
+            }
+            expected = keccak256(
+                abi.encodePacked(
+                    "\x19\x01",
+                    keccak256(
+                        abi.encode(
+                            keccak256(
+                                "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
+                            ),
+                            keccak256("MulticallerWithSigner"),
+                            keccak256("1"),
+                            block.chainid,
+                            address(multicallerWithSigner)
+                        )
+                    ),
+                    keccak256(
+                        abi.encode(
+                            keccak256(
+                                "AggregateWithSigner(address[] targets,bytes[] data,uint256[] values,uint256 nonce,uint256 nonceSalt)"
+                            ),
+                            keccak256(abi.encodePacked(targets)),
+                            keccak256(abi.encodePacked(dataHashes)),
+                            keccak256(abi.encodePacked(values)),
+                            nonce,
+                            nonceSalt
+                        )
+                    )
+                )
+            );
+        }
+        assertEq(
+            multicallerWithSigner.computeDigest(targets, data, values, nonce, nonceSalt), expected
+        );
+    }
+
+    function testMulticallerWithSignerInvalidateNonces(uint256) public {
+        unchecked {
+            MulticallerWithSigner multicallerWithSigner = new MulticallerWithSigner();
+            uint256[] memory nonces = new uint256[](_random() % 4);
+            if (_random() % 2 == 0) {
+                for (uint256 i; i < nonces.length; ++i) {
+                    nonces[i] = _random();
+                }
+            } else {
+                for (uint256 i; i < nonces.length; ++i) {
+                    nonces[i] = _random() % 8;
+                }
+            }
+
+            (address signer,) = _randomSigner();
+
+            bool[] memory used = multicallerWithSigner.noncesUsed(signer, nonces);
+            for (uint256 i; i < nonces.length; ++i) {
+                assertEq(used[i], false);
+            }
+
+            vm.prank(signer);
+            vm.expectEmit(true, true, true, true);
+            emit NoncesInvalidated(signer, nonces);
+            multicallerWithSigner.invalidateNonces(nonces);
+
+            used = multicallerWithSigner.noncesUsed(signer, nonces);
+            for (uint256 i; i < nonces.length; ++i) {
+                assertEq(used[i], true);
+            }
+
+            {
+                (address anotherSigner,) = _randomSigner();
+                used = multicallerWithSigner.noncesUsed(anotherSigner, nonces);
+                for (uint256 i; i < nonces.length; ++i) {
+                    assertEq(used[i], anotherSigner == signer);
+                }
+            }
+
+            uint256[] memory otherNonces = new uint256[](1);
+            otherNonces[0] = _random();
+            bool expectedUsed;
+            for (uint256 i; i < nonces.length; ++i) {
+                if (nonces[i] == otherNonces[0]) expectedUsed = true;
+            }
+            used = multicallerWithSigner.noncesUsed(signer, otherNonces);
+            assertEq(used[0], expectedUsed);
+        }
     }
 }
