@@ -104,6 +104,13 @@ contract MulticallerWithSigner {
     ) external payable returns (bytes[] memory) {
         // _validateSignatureAndClaimNonce(targets, data, values, nonce, nonceSalt, signature, signer);
         assembly {
+            // Early return if no data.
+            if iszero(data.length) {
+                mstore(0x00, 0x20) // Store the memory offset of the `results`.
+                mstore(0x20, data.length) // Store `data.length` into `results`.
+                return(0x00, 0x40)
+            }
+
             if iszero(and(eq(targets.length, data.length), eq(data.length, values.length))) {
                 // Store the function selector of `ArrayLengthsMismatch()`.
                 mstore(0x00, 0x3b800a46)
@@ -145,17 +152,23 @@ contract MulticallerWithSigner {
             mstore(0x20, keccak256(0x20, shl(5, targets.length)))
             // Compute and store
             // `keccak256(abi.encodePacked(keccak256(data[0]), .., keccak256(data[n-1])))`.
-            for { let i := 0 } iszero(eq(i, data.length)) { i := add(i, 1) } {
-                let o := add(data.offset, calldataload(add(data.offset, shl(5, i))))
-                let p := add(0x40, shl(5, i))
+            for {
+                let i := 0
+                data.length := shl(5, data.length)
+            } 1 {} {
+                let o := add(data.offset, calldataload(add(data.offset, i)))
+                let p := add(0x40, i)
                 calldatacopy(p, add(o, 0x20), calldataload(o))
                 mstore(p, keccak256(p, calldataload(o)))
+                i := add(i, 0x20)
+                if eq(i, data.length) { break }
             }
-            mstore(0x40, keccak256(0x40, shl(5, data.length)))
-
-            // Compute and store `keccak256(abi.encodePacked(values))`.
-            calldatacopy(0x60, values.offset, shl(5, values.length))
-            mstore(0x60, keccak256(0x60, shl(5, values.length)))
+            mstore(0x40, keccak256(0x40, data.length))
+            {
+                // Compute and store `keccak256(abi.encodePacked(values))`.
+                calldatacopy(0x60, values.offset, data.length)
+                mstore(0x60, keccak256(0x60, data.length))
+            }
             // Store `nonce` and `nonceSalt`.
             mstore(0x80, nonce)
             mstore(0xa0, nonceSalt)
@@ -205,25 +218,17 @@ contract MulticallerWithSigner {
 
             /* -------------------- PERFORM AGGREGATE ------------------- */
 
-            // Early return if no data.
-            if iszero(data.length) {
-                mstore(0x00, 0x20) // Store the memory offset of the `results`.
-                mstore(0x20, data.length) // Store `data.length` into `results`.
-                return(0x00, 0x40)
-            }
-
             // Set the sender slot temporarily for the span of this transaction.
             sstore(0x00, caller())
 
             let results := 0x40
-            // Left shift by 5 is equivalent to multiplying by 0x20.
-            data.length := shl(5, data.length)
+
             // Copy the offsets from calldata into memory.
             calldatacopy(results, data.offset, data.length)
             // Offset into `results`.
-            let resultsOffset := data.length
+            let resultsOffset := data.length // after all pointer location
             // Pointer to the end of `results`.
-            let end := add(results, data.length)
+            let end := add(results, data.length) // 0x40 + dataEnd
 
             // Cache the `targets.offset` and `values.offset` in memory to avoid stack too deep.
             mstore(0x00, targets.offset)
@@ -267,7 +272,7 @@ contract MulticallerWithSigner {
                 // Advance the `resultsOffset` by `returndatasize() + 0x20`,
                 // rounded up to the next multiple of 0x20.
                 resultsOffset := and(add(add(resultsOffset, returndatasize()), 0x3f), not(0x1f))
-                if iszero(lt(results, end)) { break }
+                if eq(results, end) { break }
             }
             mstore(0x00, 0x20) // Store the memory offset of the `results`.
             mstore(0x20, targets.length) // Store `targets.length` into `results`.

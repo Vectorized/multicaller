@@ -116,6 +116,8 @@ contract MulticallerTest is TestPlus {
     FallbackTarget fallbackTargetA;
     FallbackTarget fallbackTargetB;
 
+    bytes4 fallbackSelector = 0x00000000;
+
     event NoncesInvalidated(address indexed signer, uint256[] nonces);
 
     event NonceSaltIncremented(address indexed signer, uint256 newNonceSalt);
@@ -397,17 +399,26 @@ contract MulticallerTest is TestPlus {
         }
     }
 
-    function _testTemps() internal returns (_TestTemps memory t) {
+    function _testTemps(bytes4 func) internal returns (_TestTemps memory t) {
         (t.signer, t.privateKey) = _randomSigner();
 
-        uint256 n = _random() % 3; // 0, 1, 2
+        uint256 n = _random() % 5 + 1; // 1, 2, 3, 4, 5
         t.targets = new address[](n);
         t.data = new bytes[](n);
         t.values = new uint256[](n);
-        for (uint256 i; i < n; ++i) {
-            t.targets[i] = _random() % 2 == 0 ? address(fallbackTargetA) : address(fallbackTargetB);
-            t.data[i] = _randomBytes();
-            t.values[i] = _random() % 32;
+        if (func == bytes4(0x00000000)) {
+            for (uint256 i; i < n; ++i) {
+                t.targets[i] =
+                    _random() % 2 == 0 ? address(fallbackTargetA) : address(fallbackTargetB);
+                t.data[i] = _randomBytes();
+                t.values[i] = _random() % 32;
+            }
+        } else {
+            for (uint256 i; i < n; ++i) {
+                t.targets[i] = _random() % 2 == 0 ? address(targetA) : address(targetB);
+                t.data[i] = abi.encodeWithSelector(bytes4(func), _randomBytes());
+                t.values[i] = 0;
+            }
         }
         t.nonce = _random();
 
@@ -460,12 +471,45 @@ contract MulticallerTest is TestPlus {
     }
 
     function testMulticallerWithSignerV(uint256) public {
-        _TestTemps memory t = _testTemps();
+        _TestTemps memory t = _testTemps(fallbackSelector);
+
+        vm.deal(address(this), type(uint160).max);
+        multicallerWithSigner.aggregateWithSigner{value: address(this).balance}(
+            t.targets, t.data, t.values, t.nonce, t.nonceSalt, t.signer, t.signature
+        );
+    }
+
+    function testMulticallerWithSignerReturnDataIsProperlyEncoded() public {
+        _TestTemps memory t = _testTemps(MulticallerTarget.returnsString.selector);
 
         vm.deal(address(this), type(uint160).max);
         bytes[] memory results = multicallerWithSigner.aggregateWithSigner{
             value: address(this).balance
         }(t.targets, t.data, t.values, t.nonce, t.nonceSalt, t.signer, t.signature);
+
+        uint256 len = results.length;
+
+        unchecked {
+            for (uint256 i; i < len; ++i) {
+                assertEq(
+                    keccak256(
+                        abi.encodePacked(
+                            bytes4(MulticallerTarget.returnsString.selector), results[i]
+                        )
+                    ),
+                    keccak256(t.data[i])
+                );
+            }
+        }
+    }
+
+    function testMulticallerWithSignerRevertWithCustomError() public {
+        _TestTemps memory t = _testTemps(MulticallerTarget.revertsWithCustomError.selector);
+
+        vm.expectRevert(MulticallerTarget.CustomError.selector);
+        multicallerWithSigner.aggregateWithSigner{value: address(this).balance}(
+            t.targets, t.data, t.values, t.nonce, t.nonceSalt, t.signer, t.signature
+        );
     }
 
     // function testMulticallerWithSignerComputeDigestDifferential(
@@ -551,5 +595,37 @@ contract MulticallerTest is TestPlus {
             used = multicallerWithSigner.noncesUsed(signer, otherNonces);
             assertEq(used[0], expectedUsed);
         }
+    }
+
+    function testMulticallerWithSignerEditedCalldata() public {
+        _TestTemps memory t = _testTemps(fallbackSelector);
+
+        uint256 a = _random();
+
+        assembly {
+            // t.targets[0] pointer
+            let o := add(mload(t), 0x20)
+            mstore(o, and(o, a))
+        }
+
+        vm.deal(address(this), type(uint160).max);
+        vm.expectRevert(MulticallerWithSigner.InvalidSignature.selector);
+        multicallerWithSigner.aggregateWithSigner{value: address(this).balance}(
+            t.targets, t.data, t.values, t.nonce, t.nonceSalt, t.signer, t.signature
+        );
+    }
+
+    function testMulticallerWithSignerReplayAttack(uint256) public {
+        _TestTemps memory t = _testTemps(fallbackSelector);
+
+        vm.deal(address(this), type(uint160).max);
+        multicallerWithSigner.aggregateWithSigner{value: address(this).balance}(
+            t.targets, t.data, t.values, t.nonce, t.nonceSalt, t.signer, t.signature
+        );
+
+        vm.expectRevert(MulticallerWithSigner.InvalidSignature.selector);
+        multicallerWithSigner.aggregateWithSigner{value: address(this).balance}(
+            t.targets, t.data, t.values, t.nonce, t.nonceSalt, t.signer, t.signature
+        );
     }
 }
