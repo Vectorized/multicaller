@@ -284,7 +284,7 @@ contract MulticallerWithSigner {
                 // Advance the `resultsOffset` by `returndatasize() + 0x20`,
                 // rounded up to the next multiple of 0x20.
                 resultsOffset := and(add(add(resultsOffset, returndatasize()), 0x3f), not(0x1f))
-                if iszero(lt(results, end)) { break }
+                if eq(results, end) { break }
             }
             // Slot 0x00's value is already 0x20.
             mstore(0x20, targets.length) // Store `targets.length` into `results`.

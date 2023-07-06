@@ -20,7 +20,7 @@ library LibMulticaller {
     /**
      * @dev The address of the multicaller with signer contract.
      */
-    address internal constant MULTICALLER_WITH_SIGNER = 0x0000000000984f9eEd543d188600D0A1228d8250;
+    address internal constant MULTICALLER_WITH_SIGNER = 0x000000000019b57a31907ac704D32128004c4B75;
 
     /**
      * @dev Returns the caller of `aggregateWithSender` on `MULTICALLER_WITH_SENDER`.
@@ -28,17 +28,9 @@ library LibMulticaller {
     function multicallerSender() internal view returns (address result) {
         /// @solidity memory-safe-assembly
         assembly {
-            if iszero(
-                staticcall(
-                    gas(), // Remaining gas.
-                    MULTICALLER_WITH_SENDER, // The multicaller.
-                    0x00, // Start of calldata in memory.
-                    0x00, // Length of calldata.
-                    0x00, // Start of returndata in memory.
-                    0x20 // Length of returndata.
-                )
-            ) { revert(0, 0) } // For better gas estimation.
-
+            if iszero(staticcall(gas(), MULTICALLER_WITH_SENDER, 0x00, 0x00, 0x00, 0x20)) {
+                revert(0, 0) // For better gas estimation.
+            }
             result := mul(mload(0x00), eq(returndatasize(), 0x20))
         }
     }
@@ -49,17 +41,9 @@ library LibMulticaller {
     function multicallerSigner() internal view returns (address result) {
         /// @solidity memory-safe-assembly
         assembly {
-            if iszero(
-                staticcall(
-                    gas(), // Remaining gas.
-                    MULTICALLER_WITH_SIGNER, // The multicaller with signer.
-                    0x00, // Start of calldata in memory.
-                    0x00, // Length of calldata.
-                    0x00, // Start of returndata in memory.
-                    0x20 // Length of returndata.
-                )
-            ) { revert(0, 0) } // For better gas estimation.
-
+            if iszero(staticcall(gas(), MULTICALLER_WITH_SIGNER, 0x00, 0x00, 0x00, 0x20)) {
+                revert(0, 0) // For better gas estimation.
+            }
             result := mul(mload(0x00), eq(returndatasize(), 0x20))
         }
     }
@@ -70,10 +54,20 @@ library LibMulticaller {
      *      Otherwise, returns `msg.sender`.
      */
     function sender() internal view returns (address result) {
-        if (msg.sender == MULTICALLER_WITH_SENDER) {
-            return multicallerSender();
+        /// @solidity memory-safe-assembly
+        assembly {
+            for {} 1 {} {
+                if eq(caller(), MULTICALLER_WITH_SENDER) {
+                    if iszero(staticcall(gas(), MULTICALLER_WITH_SENDER, 0x00, 0x00, 0x00, 0x20)) {
+                        revert(0, 0) // For better gas estimation.
+                    }
+                    result := mload(0x00)
+                    break
+                }
+                result := caller()
+                break
+            }
         }
-        return msg.sender;
     }
 
     /**
@@ -84,12 +78,26 @@ library LibMulticaller {
      *      Otherwise, returns `msg.sender`.
      */
     function senderOrSigner() internal view returns (address result) {
-        if (msg.sender == MULTICALLER_WITH_SENDER) {
-            return multicallerSender();
+        /// @solidity memory-safe-assembly
+        assembly {
+            for {} 1 {} {
+                if eq(caller(), MULTICALLER_WITH_SENDER) {
+                    if iszero(staticcall(gas(), MULTICALLER_WITH_SENDER, 0x00, 0x00, 0x00, 0x20)) {
+                        revert(0, 0) // For better gas estimation.
+                    }
+                    result := mload(0x00)
+                    break
+                }
+                if eq(caller(), MULTICALLER_WITH_SIGNER) {
+                    if iszero(staticcall(gas(), MULTICALLER_WITH_SIGNER, 0x00, 0x00, 0x00, 0x20)) {
+                        revert(0, 0) // For better gas estimation.
+                    }
+                    result := mload(0x00)
+                    break
+                }
+                result := caller()
+                break
+            }
         }
-        if (msg.sender == MULTICALLER_WITH_SIGNER) {
-            return multicallerSigner();
-        }
-        return msg.sender;
     }
 }
