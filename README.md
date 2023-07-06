@@ -10,15 +10,34 @@ Enables "forwarding" of `msg.sender` to the contracts called.
 
 ## Deployments
 
-| Chain | Multicaller | MulticallerWithSender |
-|---|---|---|
-| Ethereum | [`0x000000000088228fCF7b8af41Faf3955bD0B3A41`](https://etherscan.io/address/0x000000000088228fCF7b8af41Faf3955bD0B3A41) | [`0x00000000002Fd5Aeb385D324B580FCa7c83823A0`](https://etherscan.io/address/0x00000000002Fd5Aeb385D324B580FCa7c83823A0) |
-| Goerli | [`0x000000000088228fCF7b8af41Faf3955bD0B3A41`](https://goerli.etherscan.io/address/0x000000000088228fCF7b8af41Faf3955bD0B3A41) | [`0x00000000002Fd5Aeb385D324B580FCa7c83823A0`](https://goerli.etherscan.io/address/0x00000000002Fd5Aeb385D324B580FCa7c83823A0) |
-| Sepolia | [`0x000000000088228fCF7b8af41Faf3955bD0B3A41`](https://sepolia.etherscan.io/address/0x000000000088228fCF7b8af41Faf3955bD0B3A41) | [`0x00000000002Fd5Aeb385D324B580FCa7c83823A0`](https://sepolia.etherscan.io/address/0x00000000002Fd5Aeb385D324B580FCa7c83823A0) |
-| Polygon | [`0x000000000088228fCF7b8af41Faf3955bD0B3A41`](https://polygonscan.com/address/0x000000000088228fCF7b8af41Faf3955bD0B3A41) | [`0x00000000002Fd5Aeb385D324B580FCa7c83823A0`](https://polygonscan.com/address/0x00000000002Fd5Aeb385D324B580FCa7c83823A0) |
-| Mumbai | [`0x000000000088228fCF7b8af41Faf3955bD0B3A41`](https://mumbai.polygonscan.com/address/0x000000000088228fCF7b8af41Faf3955bD0B3A41) | [`0x00000000002Fd5Aeb385D324B580FCa7c83823A0`](https://mumbai.polygonscan.com/address/0x00000000002Fd5Aeb385D324B580FCa7c83823A0) |
-| Optimism | [`0x000000000088228fCF7b8af41Faf3955bD0B3A41`](https://optimistic.etherscan.io/address/0x000000000088228fCF7b8af41Faf3955bD0B3A41) | [`0x00000000002Fd5Aeb385D324B580FCa7c83823A0`](https://optimistic.etherscan.io/address/0x00000000002Fd5Aeb385D324B580FCa7c83823A0) |
-| Arbitrum | [`0x000000000088228fCF7b8af41Faf3955bD0B3A41`](https://arbiscan.io/address/0x000000000088228fCF7b8af41Faf3955bD0B3A41) | [`0x00000000002Fd5Aeb385D324B580FCa7c83823A0`](https://arbiscan.io/address/0x00000000002Fd5Aeb385D324B580FCa7c83823A0) |
+- Ethereum 
+  - Multicaller: [`0x000000000088228fCF7b8af41Faf3955bD0B3A41`](https://etherscan.io/address/0x000000000088228fCF7b8af41Faf3955bD0B3A41)
+  - MulticallerWithSender: [`0x00000000002Fd5Aeb385D324B580FCa7c83823A0`](https://etherscan.io/address/0x00000000002Fd5Aeb385D324B580FCa7c83823A0)
+  - MulticallerWithSigner: [`0x000000000019b57a31907ac704D32128004c4B75`](https://etherscan.io/address/0x000000000019b57a31907ac704D32128004c4B75)
+- Goerli 
+  - Multicaller: [`0x000000000088228fCF7b8af41Faf3955bD0B3A41`](https://goerli.etherscan.io/address/0x000000000088228fCF7b8af41Faf3955bD0B3A41)
+  - MulticallerWithSender: [`0x00000000002Fd5Aeb385D324B580FCa7c83823A0`](https://goerli.etherscan.io/address/0x00000000002Fd5Aeb385D324B580FCa7c83823A0)
+  - MulticallerWithSigner: [`0x000000000019b57a31907ac704D32128004c4B75`](https://goerli.etherscan.io/address/0x000000000019b57a31907ac704D32128004c4B75)
+- Sepolia 
+  - Multicaller: [`0x000000000088228fCF7b8af41Faf3955bD0B3A41`](https://sepolia.etherscan.io/address/0x000000000088228fCF7b8af41Faf3955bD0B3A41)
+  - MulticallerWithSender: [`0x00000000002Fd5Aeb385D324B580FCa7c83823A0`](https://sepolia.etherscan.io/address/0x00000000002Fd5Aeb385D324B580FCa7c83823A0)
+  - MulticallerWithSigner: [`0x000000000019b57a31907ac704D32128004c4B75`](https://sepolia.etherscan.io/address/0x000000000019b57a31907ac704D32128004c4B75)
+- Polygon 
+  - Multicaller: [`0x000000000088228fCF7b8af41Faf3955bD0B3A41`](https://polygonscan.com/address/0x000000000088228fCF7b8af41Faf3955bD0B3A41)
+  - MulticallerWithSender: [`0x00000000002Fd5Aeb385D324B580FCa7c83823A0`](https://polygonscan.com/address/0x00000000002Fd5Aeb385D324B580FCa7c83823A0)
+  - MulticallerWithSigner: [`0x000000000019b57a31907ac704D32128004c4B75`](https://polygonscan.com/address/0x000000000019b57a31907ac704D32128004c4B75)
+- Mumbai 
+  - Multicaller: [`0x000000000088228fCF7b8af41Faf3955bD0B3A41`](https://mumbai.polygonscan.com/address/0x000000000088228fCF7b8af41Faf3955bD0B3A41)
+  - MulticallerWithSender: [`0x00000000002Fd5Aeb385D324B580FCa7c83823A0`](https://mumbai.polygonscan.com/address/0x00000000002Fd5Aeb385D324B580FCa7c83823A0)
+  - MulticallerWithSigner: [`0x000000000019b57a31907ac704D32128004c4B75`](https://mumbai.polygonscan.com/address/0x000000000019b57a31907ac704D32128004c4B75)
+- Optimism 
+  - Multicaller: [`0x000000000088228fCF7b8af41Faf3955bD0B3A41`](https://optimistic.etherscan.io/address/0x000000000088228fCF7b8af41Faf3955bD0B3A41)
+  - MulticallerWithSender: [`0x00000000002Fd5Aeb385D324B580FCa7c83823A0`](https://optimistic.etherscan.io/address/0x00000000002Fd5Aeb385D324B580FCa7c83823A0)
+  - MulticallerWithSigner: [`0x000000000019b57a31907ac704D32128004c4B75`](https://optimistic.etherscan.io/address/0x000000000019b57a31907ac704D32128004c4B75)
+- Arbitrum 
+  - Multicaller: [`0x000000000088228fCF7b8af41Faf3955bD0B3A41`](https://arbiscan.io/address/0x000000000088228fCF7b8af41Faf3955bD0B3A41)
+  - MulticallerWithSender: [`0x00000000002Fd5Aeb385D324B580FCa7c83823A0`](https://arbiscan.io/address/0x00000000002Fd5Aeb385D324B580FCa7c83823A0)
+  - MulticallerWithSigner: [`0x000000000019b57a31907ac704D32128004c4B75`](https://arbiscan.io/address/0x000000000019b57a31907ac704D32128004c4B75)
 
 Please open an issue if you need help to deploy to an EVM chain of your choice.
 
@@ -28,7 +47,8 @@ Please open an issue if you need help to deploy to an EVM chain of your choice.
 src
 ├─ Multicaller.sol — "The multicaller contract"
 ├─ MulticallerWithSender.sol — "The multicaller with sender contract"
-└─ LibMulticaller.sol — "Library to read the multicaller with sender contract"
+├─ MulticallerWithSigner.sol — "The multicaller with signer contract"
+└─ LibMulticaller.sol — "Library to read the multicaller contracts"
 ``` 
 
 ## Installation
@@ -60,6 +80,8 @@ function aggregate(address[] calldata targets, bytes[] calldata data, uint256[] 
 ```  
 Aggregates multiple calls in a single transaction.
 
+
+
 ### MulticallerWithSender
 
 #### `aggregateWithSender`
@@ -83,15 +105,55 @@ Returns the address that called `aggregateWithSender` on the contract.
 
 The value is always the zero address outside a transaction.
 
+
+
+### MulticallerWithSigner
+
+#### `aggregateWithSigner`
+```solidity
+function aggregateWithSigner(
+	string memory message,
+    address[] calldata targets,
+    bytes[] calldata data,
+    uint256[] calldata values,
+    uint256 nonce,
+    uint256 nonceSalt,
+    address signer,
+    bytes calldata signature
+) external payable returns (bytes[] memory)
+```  
+Aggregates multiple calls in a single transaction.
+
+This method will set the multicaller signer to the `msg.sender` temporarily for the span of its execution.
+
+This method does not support reentrancy.
+
+#### `receive`
+```solidity
+receive() external payable
+```  
+Returns the address that called `aggregateWithSigner` on the contract.
+
+The value is always the zero address outside a transaction.
+
+
 ### LibMulticaller
 
-Library to read the multicaller with sender contract.
+Library to read the multicaller contracts.
 
 #### `multicallerSender`
 ```solidity
 function multicallerSender() internal view returns (address)
 ```  
 Returns the address that called `aggregateWithSender` on the multicaller with sender contract.
+
+
+#### `multicallerSigner`
+```solidity
+function multicallerSigner() internal view returns (address)
+```  
+Returns the address that called `aggregateWithSigner` on the multicaller with signer contract.
+
 
 #### `sender`
 ```solidity
@@ -100,6 +162,18 @@ function sender() internal view returns (address result)
 Returns the address that called `aggregateWithSender` on the multicaller with sender contract, if `msg.sender` is the multicaller with sender contract.
 
 Otherwise, returns `msg.sender`.
+
+#### `senderOrSigner`
+```solidity
+function senderOrSigner() internal view returns (address result)
+```  
+Returns the address that called `aggregateWithSender` on the multicaller with sender contract, if `msg.sender` is the multicaller with sender contract.
+
+Returns the address that called `aggregateWithSigner` on the multicaller with signer contract, if `msg.sender` is the multicaller with signer contract.
+
+Otherwise, returns `msg.sender`.
+
+
 
 ## Design
 
