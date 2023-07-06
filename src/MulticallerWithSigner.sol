@@ -230,8 +230,8 @@ contract MulticallerWithSigner {
                 return(0x00, 0x40)
             }
 
-            // Set the sender slot temporarily for the span of this transaction.
-            sstore(0x00, caller())
+            // Set the signer slot temporarily for the span of this transaction.
+            sstore(0x00, signer)
 
             let results := 0x40
             // Copy the offsets from calldata into memory.
@@ -289,7 +289,7 @@ contract MulticallerWithSigner {
             // Slot 0x00's value is already 0x20.
             mstore(0x20, targets.length) // Store `targets.length` into `results`.
 
-            // Restore the `sender` slot.
+            // Restore the `signer` slot.
             sstore(0, shl(160, 1))
             // Direct return.
             return(0x00, add(resultsOffset, 0x40))

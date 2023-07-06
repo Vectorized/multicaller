@@ -58,6 +58,14 @@ contract MulticallerTarget {
         return LibMulticaller.multicallerSender();
     }
 
+    function returnsMulticallerSigner() external view returns (address) {
+        return LibMulticaller.multicallerSigner();
+    }
+
+    function returnsSenderOrSigner() external view returns (address) {
+        return LibMulticaller.senderOrSigner();
+    }
+
     function name() external view returns (string memory) {
         return _name;
     }
@@ -111,16 +119,16 @@ contract MulticallerTest is TestPlus {
         0x00000000002Fd5Aeb385D324B580FCa7c83823A0;
 
     bytes public constant MULTICALLER_WITH_SIGNER_INITCODE =
-        hex"60806040819052600160a01b3d55610a13908161001a8239f3fe6080604052600480361015610020575b50361561001b57600080fd5b6106e0565b6000803560e01c9182630f902fba1461009a575050806313707df31461009557806317447cf1146100905780632eb48a801461008b5780633aeb22061461008657806384b0196e146100815763f0c60f1a1461007c573861000f565b610675565b610548565b6104a5565b6103ec565b61034f565b6102f6565b6101007ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101735767ffffffffffffffff918135838111610173576100e590369084016101cb565b9160243584811161016f576100fd9036908301610251565b93909160443586811161016b576101179036908301610251565b606497919735828111610167576101319036908501610251565b93909261013c610282565b9760e4359182116101645750610154913691016102c8565b98909760a43596608435966106ff565b80fd5b8680fd5b8480fd5b8280fd5b5080fd5b7f4e487b7100000000000000000000000000000000000000000000000000000000600052604160045260246000fd5b604051906040820182811067ffffffffffffffff8211176101c657604052565b610177565b81601f8201121561024c5780359067ffffffffffffffff928383116101c657604051937fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0603f81601f8701160116850190858210908211176101c6576040528284526020838301011161024c57816000926020809301838601378301015290565b600080fd5b9181601f8401121561024c5782359167ffffffffffffffff831161024c576020808501948460051b01011161024c57565b60c4359073ffffffffffffffffffffffffffffffffffffffff8216820361024c57565b6004359073ffffffffffffffffffffffffffffffffffffffff8216820361024c57565b9181601f8401121561024c5782359167ffffffffffffffff831161024c576020838186019501011161024c57565b3461024c5760007ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc36011261024c5760206040517fc4d2f044d99707794280032fc14879a220a3f7dc766d75100809624f91d69e978152f35b3461024c576040807ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc36011261024c576103876102a5565b9060243567ffffffffffffffff811161024c576103a8903690600401610251565b90923d528060051b923d5b8481036103c757505060203d52602052013df35b806020918301358060081c83526034600c20549060ff161c60011681860152016103b3565b3461024c576020807ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc36011261024c5760043567ffffffffffffffff811161024c5761043c903690600401610251565b90333d528160051b913d5b83810361048257508383943d52526040377fc45e3a0dd412bcad8d62398d74d66b1c8449f38beb10da275e4da0c6d3a811a433916040013da2005b8085918401358060081c835260016034600c209160ff161b815417905501610447565b3461024c5760207ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc36011261024c5760016104de6102a5565b60601b17543d5260203df35b919082519283825260005b8481106105345750507fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0601f8460006020809697860101520116010190565b6020818301810151848301820152016104f5565b3461024c5760007ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc36011261024c5761057f6101a6565b601581526020907f4d756c746963616c6c6572576974685369676e65720000000000000000000000828201526105b36101a6565b6106296001918281527f31000000000000000000000000000000000000000000000000000000000000008582015261061b604051947f0f00000000000000000000000000000000000000000000000000000000000000865260e08787015260e08601906104ea565b9084820360408601526104ea565b92466060840152306080840152600060a084015282840360c08401528060605194858152019360809160005b8281106106625785870386f35b8351875295810195928101928401610655565b3461024c5760007ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc36011261024c5760013360601b1780546001018091553d52337f997a42216df16c8b9e7caf2fc71c59dba956f1f2b12320f87a80a5879464217d60203da260203df35b3d5473ffffffffffffffffffffffffffffffffffffffff163d5260203df35b969a9890949293979591976060928114818a1416156109d0573d5460a01c156109c35760059997991b987fc4d2f044d99707794280032fc14879a220a3f7dc766d75100809624f91d69e973d52805197602098898093012082528a8d60409d8e91838b843783832083523d5b84810361099857508388208852608093808a86378420845260a0528a60c05260e03d2082527f8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f83527f301013e8a31863902646dc218ecd889c37491c2967a8104d5ff1cf42af0f9ea460a0527fc89efdaa54c0f20c7adf612882df0950f5a951637e0307cdcb4c672f298b8bc660c0524660e05230610100526119013d5260a0832085526042601e203d52818101353d1a855281373d913d9060417f7fffffffffffffffffffffffffffffff5d576e7357a4501ddfe92f46681b20a18851109114165afa5060009a818c51143d0296828d528160081c89526034600c209081546001998a8560ff161b928b87891b1754188284161790151761098b57179055878c528688528a527fc45e3a0dd412bcad8d62398d74d66b1c8449f38beb10da275e4da0c6d3a811a4828ca2871561098457849089929493338c5583958a8286378a85019590935b6108f8575b898952740100000000000000000000000000000000000000008d558a85018df35b8c808a899a9d949596979899518601988501988035918291018a3788883585355af11561097b577fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe091898080603f940197019982815201963d90528d3d908683013e3d01011698858514610974579591908a93879695966108d2565b8a936108d7565b8c3d81803e3d90fd5b888a898852f35b638baa579f8f526004601cfd5b925050929391508088013588018282880191803591829101833781209052018c8a93928f8e9361076b565b63ab143c063d526004601cfd5b633b800a463d526004601cfdfea2646970667358221220bafd9ca451780e9a408311a93e85773ed5de87689bd15fdd9723e86cb6f09b3264736f6c63430008120033";
+        hex"60806040819052600160a01b3d55610a14908161001a8239f3fe6080604052600480361015610020575b50361561001b57600080fd5b6106e0565b6000803560e01c9182630f902fba1461009a575050806313707df31461009557806317447cf1146100905780632eb48a801461008b5780633aeb22061461008657806384b0196e146100815763f0c60f1a1461007c573861000f565b610675565b610548565b6104a5565b6103ec565b61034f565b6102f6565b6101007ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101735767ffffffffffffffff918135838111610173576100e590369084016101cb565b9160243584811161016f576100fd9036908301610251565b93909160443586811161016b576101179036908301610251565b606497919735828111610167576101319036908501610251565b93909261013c610282565b9760e4359182116101645750610154913691016102c8565b98909760a43596608435966106ff565b80fd5b8680fd5b8480fd5b8280fd5b5080fd5b7f4e487b7100000000000000000000000000000000000000000000000000000000600052604160045260246000fd5b604051906040820182811067ffffffffffffffff8211176101c657604052565b610177565b81601f8201121561024c5780359067ffffffffffffffff928383116101c657604051937fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0603f81601f8701160116850190858210908211176101c6576040528284526020838301011161024c57816000926020809301838601378301015290565b600080fd5b9181601f8401121561024c5782359167ffffffffffffffff831161024c576020808501948460051b01011161024c57565b60c4359073ffffffffffffffffffffffffffffffffffffffff8216820361024c57565b6004359073ffffffffffffffffffffffffffffffffffffffff8216820361024c57565b9181601f8401121561024c5782359167ffffffffffffffff831161024c576020838186019501011161024c57565b3461024c5760007ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc36011261024c5760206040517fc4d2f044d99707794280032fc14879a220a3f7dc766d75100809624f91d69e978152f35b3461024c576040807ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc36011261024c576103876102a5565b9060243567ffffffffffffffff811161024c576103a8903690600401610251565b90923d528060051b923d5b8481036103c757505060203d52602052013df35b806020918301358060081c83526034600c20549060ff161c60011681860152016103b3565b3461024c576020807ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc36011261024c5760043567ffffffffffffffff811161024c5761043c903690600401610251565b90333d528160051b913d5b83810361048257508383943d52526040377fc45e3a0dd412bcad8d62398d74d66b1c8449f38beb10da275e4da0c6d3a811a433916040013da2005b8085918401358060081c835260016034600c209160ff161b815417905501610447565b3461024c5760207ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc36011261024c5760016104de6102a5565b60601b17543d5260203df35b919082519283825260005b8481106105345750507fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0601f8460006020809697860101520116010190565b6020818301810151848301820152016104f5565b3461024c5760007ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc36011261024c5761057f6101a6565b601581526020907f4d756c746963616c6c6572576974685369676e65720000000000000000000000828201526105b36101a6565b6106296001918281527f31000000000000000000000000000000000000000000000000000000000000008582015261061b604051947f0f00000000000000000000000000000000000000000000000000000000000000865260e08787015260e08601906104ea565b9084820360408601526104ea565b92466060840152306080840152600060a084015282840360c08401528060605194858152019360809160005b8281106106625785870386f35b8351875295810195928101928401610655565b3461024c5760007ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc36011261024c5760013360601b1780546001018091553d52337f997a42216df16c8b9e7caf2fc71c59dba956f1f2b12320f87a80a5879464217d60203da260203df35b3d5473ffffffffffffffffffffffffffffffffffffffff163d5260203df35b969a9890949293979591976060928114818a1416156109d1573d5460a01c156109c45760059997991b987fc4d2f044d99707794280032fc14879a220a3f7dc766d75100809624f91d69e973d52805197602098898093012082528a8d60409d8e91838b843783832083523d5b84810361099957508388208852608093808a86378420845260a0528a60c05260e03d2082527f8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f83527f301013e8a31863902646dc218ecd889c37491c2967a8104d5ff1cf42af0f9ea460a0527fc89efdaa54c0f20c7adf612882df0950f5a951637e0307cdcb4c672f298b8bc660c0524660e05230610100526119013d5260a0832085526042601e203d52818101353d1a855281373d913d9060417f7fffffffffffffffffffffffffffffff5d576e7357a4501ddfe92f46681b20a18851109114165afa5060009a818c51143d0296828d528160081c89526034600c209081546001998a8560ff161b928b87891b1754188284161790151761098c57179055878c528688528a52807fc45e3a0dd412bcad8d62398d74d66b1c8449f38beb10da275e4da0c6d3a811a4838da2881561098557908992949386928c5583958a8286378a85019590935b6108f9575b898952740100000000000000000000000000000000000000008d558a85018df35b8c808a899a9d949596979899518601988501988035918291018a3788883585355af11561097c577fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe091898080603f940197019982815201963d90528d3d908683013e3d01011698858514610975579591908a93879695966108d3565b8a936108d8565b8c3d81803e3d90fd5b898b8a8952f35b638baa579f8f526004601cfd5b925050929391508088013588018282880191803591829101833781209052018c8a93928f8e9361076b565b63ab143c063d526004601cfd5b633b800a463d526004601cfdfea2646970667358221220cd175698bb89167d9a8ad0bad3d5ffd8a31838202ca4c6a248042289dd7b9ee264736f6c63430008120033";
 
     bytes32 public constant MULTICALLER_WITH_SIGNER_INITCODEHASH =
-        0xe7e8cfd353ef2cbf7398825be46676fbf969ddc154a4b3ee4379cc59eaf8d8de;
+        0x2cb4a0c8a59b119180cf9800efef271904b19c0d703bfc878a4a05adc3ad175e;
 
     bytes32 public constant MULTICALLER_WITH_SIGNER_CREATE2_SALT =
-        0x000000000000000000000000000000000000000057bbdab4bdfd87021876239c;
+        0x00000000000000000000000000000000000000004d70c968396e5c00fa96f702;
 
     address public constant MULTICALLER_WITH_SIGNER_CREATE2_DEPLOYED_ADDRESS =
-        0x000000000019b57a31907ac704D32128004c4B75;
+        0x0000000000127e4A71cf68F2AB70cF90A9D726C8;
 
     Multicaller multicaller;
     MulticallerWithSender multicallerWithSender;
@@ -168,8 +176,6 @@ contract MulticallerTest is TestPlus {
         assertEq(
             LibMulticaller.MULTICALLER_WITH_SIGNER, MULTICALLER_WITH_SIGNER_CREATE2_DEPLOYED_ADDRESS
         );
-
-        // multicallerWithSigner = new MulticallerWithSigner();
 
         _deployTargets();
     }
@@ -369,6 +375,10 @@ contract MulticallerTest is TestPlus {
         data[0] = abi.encodeWithSelector(MulticallerTarget.returnsSender.selector);
         results = multicallerWithSender.aggregateWithSender(targets, data, new uint256[](1));
         assertEq(abi.decode(results[0], (address)), address(this));
+
+        data[0] = abi.encodeWithSelector(MulticallerTarget.returnsSenderOrSigner.selector);
+        results = multicallerWithSender.aggregateWithSender(targets, data, new uint256[](1));
+        assertEq(abi.decode(results[0], (address)), address(this));
     }
 
     function testMulticallerSenderDoesNotRevertWithoutMulticallerDeployed() public {
@@ -405,33 +415,7 @@ contract MulticallerTest is TestPlus {
         }
     }
 
-    function _testTemps() internal returns (_TestTemps memory t) {
-        (t.signer, t.privateKey) = _randomSigner();
-        t.message = string(_randomBytes());
-        uint256 n = _random() % 3; // 0, 1, 2
-        t.targets = new address[](n);
-        t.data = new bytes[](n);
-        t.values = new uint256[](n);
-        for (uint256 i; i < n; ++i) {
-            t.targets[i] = _random() % 2 == 0 ? address(fallbackTargetA) : address(fallbackTargetB);
-            t.data[i] = _randomBytes();
-            t.values[i] = _random() % 32;
-        }
-        t.nonce = _random();
-
-        {
-            uint256 nonceSalt = _random() % 2;
-            for (uint256 i; i < nonceSalt; ++i) {
-                uint256 newNonceSalt = multicallerWithSigner.nonceSaltOf(t.signer) + 1;
-                vm.expectEmit(true, true, true, true);
-                emit NonceSaltIncremented(t.signer, newNonceSalt);
-                vm.prank(t.signer);
-                assertEq(multicallerWithSigner.incrementNonceSalt(), newNonceSalt);
-            }
-            t.nonceSalt = multicallerWithSigner.nonceSaltOf(t.signer);
-            assertEq(t.nonceSalt, nonceSalt);
-        }
-
+    function _generateSignature(_TestTemps memory t) internal {
         unchecked {
             bytes32[] memory dataHashes = new bytes32[](t.data.length);
             for (uint256 i; i < t.data.length; ++i) {
@@ -471,6 +455,35 @@ contract MulticallerTest is TestPlus {
         }
     }
 
+    function _testTemps() internal returns (_TestTemps memory t) {
+        (t.signer, t.privateKey) = _randomSigner();
+        t.message = string(_randomBytes());
+        uint256 n = _random() % 3; // 0, 1, 2
+        t.targets = new address[](n);
+        t.data = new bytes[](n);
+        t.values = new uint256[](n);
+        for (uint256 i; i < n; ++i) {
+            t.targets[i] = _random() % 2 == 0 ? address(fallbackTargetA) : address(fallbackTargetB);
+            t.data[i] = _randomBytes();
+            t.values[i] = _random() % 32;
+        }
+        t.nonce = _random();
+
+        {
+            uint256 nonceSalt = _random() % 2;
+            for (uint256 i; i < nonceSalt; ++i) {
+                uint256 newNonceSalt = multicallerWithSigner.nonceSaltOf(t.signer) + 1;
+                vm.expectEmit(true, true, true, true);
+                emit NonceSaltIncremented(t.signer, newNonceSalt);
+                vm.prank(t.signer);
+                assertEq(multicallerWithSigner.incrementNonceSalt(), newNonceSalt);
+            }
+            t.nonceSalt = multicallerWithSigner.nonceSaltOf(t.signer);
+            assertEq(t.nonceSalt, nonceSalt);
+        }
+        _generateSignature(t);
+    }
+
     function testMulticallerWithSigner(uint256) public {
         _TestTemps memory t = _testTemps();
 
@@ -484,7 +497,7 @@ contract MulticallerTest is TestPlus {
                 emit NonceSaltIncremented(t.signer, newNonceSalt);
                 vm.prank(t.signer);
                 multicallerWithSigner.incrementNonceSalt();
-                _callMulticallerWithSigner(t, false);
+                _callMulticallerWithSigner(t, MulticallerWithSigner.InvalidSignature.selector);
                 return;
             }
             if (r == 1) {
@@ -492,17 +505,17 @@ contract MulticallerTest is TestPlus {
                 noncesToInvalidate[0] = t.nonce;
                 vm.prank(t.signer);
                 multicallerWithSigner.invalidateNonces(noncesToInvalidate);
-                _callMulticallerWithSigner(t, false);
+                _callMulticallerWithSigner(t, MulticallerWithSigner.InvalidSignature.selector);
                 return;
             }
             if (r == 2) {
                 t.signature[0] = bytes1(uint8(t.signature[0]) ^ 1);
-                _callMulticallerWithSigner(t, false);
+                _callMulticallerWithSigner(t, MulticallerWithSigner.InvalidSignature.selector);
                 return;
             }
         }
 
-        bytes[] memory results = _callMulticallerWithSigner(t, true);
+        bytes[] memory results = _callMulticallerWithSigner(t, bytes4(0));
 
         unchecked {
             uint256 expectedHashSum;
@@ -517,11 +530,61 @@ contract MulticallerTest is TestPlus {
         }
 
         if (_random() % 2 == 0) {
-            _callMulticallerWithSigner(t, false);
+            _callMulticallerWithSigner(t, MulticallerWithSigner.InvalidSignature.selector);
         }
     }
 
-    function _callMulticallerWithSigner(_TestTemps memory t, bool expectSuccess)
+    function testMulticallerWithSignerReentrancyGuard() public {
+        _TestTemps memory t = _testTemps();
+        t.targets = new address[](1);
+        t.targets[0] = address(multicallerWithSigner);
+
+        t.data = new bytes[](1);
+        t.data[0] = abi.encodeWithSelector(
+            MulticallerWithSigner.aggregateWithSigner.selector,
+            "",
+            new address[](0),
+            new bytes[](0),
+            new uint256[](0),
+            0,
+            0,
+            address(0),
+            ""
+        );
+
+        t.values = new uint256[](1);
+
+        _generateSignature(t);
+
+        _callMulticallerWithSigner(t, MulticallerWithSigner.Reentrancy.selector);
+    }
+
+    function testMulticallerWithSignerGetMulticallerSigner() public {
+        _TestTemps memory t = _testTemps();
+        t.targets = new address[](4);
+        t.targets[0] = address(targetA);
+        t.targets[1] = address(targetA);
+        t.targets[2] = address(targetA);
+        t.targets[3] = address(targetA);
+
+        t.data = new bytes[](4);
+        t.data[0] = abi.encodeWithSelector(MulticallerTarget.returnsMulticallerSigner.selector);
+        t.data[1] = abi.encodeWithSelector(MulticallerTarget.returnsSenderOrSigner.selector);
+        t.data[2] = abi.encodeWithSelector(MulticallerTarget.returnsSender.selector);
+        t.data[3] = abi.encodeWithSelector(MulticallerTarget.returnsMulticallerSender.selector);
+
+        t.values = new uint256[](4);
+
+        _generateSignature(t);
+
+        bytes[] memory results = _callMulticallerWithSigner(t, bytes4(0));
+        assertEq(abi.decode(results[0], (address)), t.signer);
+        assertEq(abi.decode(results[1], (address)), t.signer);
+        assertEq(abi.decode(results[2], (address)), address(multicallerWithSigner));
+        assertEq(abi.decode(results[3], (address)), address(0));
+    }
+
+    function _callMulticallerWithSigner(_TestTemps memory t, bytes4 errorSelector)
         internal
         returns (bytes[] memory results)
     {
@@ -535,11 +598,11 @@ contract MulticallerTest is TestPlus {
         uint256[] memory nonces = new uint256[](1);
         nonces[0] = t.nonce;
 
-        if (expectSuccess) {
+        if (errorSelector == bytes4(0)) {
             vm.expectEmit(true, true, true, true);
             emit NoncesInvalidated(t.signer, nonces);
         } else {
-            vm.expectRevert(MulticallerWithSigner.InvalidSignature.selector);
+            vm.expectRevert(errorSelector);
         }
 
         results = multicallerWithSigner.aggregateWithSigner{value: valuesSum}(
@@ -553,7 +616,7 @@ contract MulticallerTest is TestPlus {
             t.signature
         );
 
-        if (expectSuccess) {
+        if (errorSelector == bytes4(0)) {
             bool[] memory invalidated = multicallerWithSigner.noncesInvalidated(t.signer, nonces);
             assertEq(invalidated[0], true);
         }

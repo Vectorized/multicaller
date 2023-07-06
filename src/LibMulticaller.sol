@@ -20,7 +20,7 @@ library LibMulticaller {
     /**
      * @dev The address of the multicaller with signer contract.
      */
-    address internal constant MULTICALLER_WITH_SIGNER = 0x000000000019b57a31907ac704D32128004c4B75;
+    address internal constant MULTICALLER_WITH_SIGNER = 0x0000000000127e4A71cf68F2AB70cF90A9D726C8;
 
     /**
      * @dev Returns the caller of `aggregateWithSender` on `MULTICALLER_WITH_SENDER`.
@@ -73,8 +73,8 @@ library LibMulticaller {
     /**
      * @dev Returns the caller of `aggregateWithSender` on `MULTICALLER_WITH_SENDER`,
      *      if the current context's `msg.sender` is `MULTICALLER_WITH_SENDER`.
-     *      Returns the caller of `aggregateWithSender` on `MULTICALLER_WITH_SENDER`,
-     *      if the current context's `msg.sender` is `MULTICALLER_WITH_SENDER`.
+     *      Returns the caller of `aggregateWithSender` on `MULTICALLER_WITH_SIGNER`,
+     *      if the current context's `msg.sender` is `MULTICALLER_WITH_SIGNER`.
      *      Otherwise, returns `msg.sender`.
      */
     function senderOrSigner() internal view returns (address result) {
