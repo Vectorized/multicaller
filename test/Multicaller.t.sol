@@ -497,7 +497,9 @@ contract MulticallerTest is TestPlus {
                 emit NonceSaltIncremented(t.signer, newNonceSalt);
                 vm.prank(t.signer);
                 multicallerWithSigner.incrementNonceSalt();
-                _callMulticallerWithSigner(t, MulticallerWithSigner.InvalidSignature.selector);
+                _callAndCheckMulticallerWithSigner(
+                    t, MulticallerWithSigner.InvalidSignature.selector
+                );
                 return;
             }
             if (r == 1) {
@@ -505,17 +507,21 @@ contract MulticallerTest is TestPlus {
                 noncesToInvalidate[0] = t.nonce;
                 vm.prank(t.signer);
                 multicallerWithSigner.invalidateNonces(noncesToInvalidate);
-                _callMulticallerWithSigner(t, MulticallerWithSigner.InvalidSignature.selector);
+                _callAndCheckMulticallerWithSigner(
+                    t, MulticallerWithSigner.InvalidSignature.selector
+                );
                 return;
             }
             if (r == 2) {
                 t.signature[0] = bytes1(uint8(t.signature[0]) ^ 1);
-                _callMulticallerWithSigner(t, MulticallerWithSigner.InvalidSignature.selector);
+                _callAndCheckMulticallerWithSigner(
+                    t, MulticallerWithSigner.InvalidSignature.selector
+                );
                 return;
             }
         }
 
-        bytes[] memory results = _callMulticallerWithSigner(t, bytes4(0));
+        bytes[] memory results = _callAndCheckMulticallerWithSigner(t, bytes4(0));
 
         unchecked {
             uint256 expectedHashSum;
@@ -529,8 +535,23 @@ contract MulticallerTest is TestPlus {
             }
         }
 
+        _checkBalance(t, address(fallbackTargetA));
+        _checkBalance(t, address(fallbackTargetB));
+
         if (_random() % 2 == 0) {
-            _callMulticallerWithSigner(t, MulticallerWithSigner.InvalidSignature.selector);
+            _callAndCheckMulticallerWithSigner(t, MulticallerWithSigner.InvalidSignature.selector);
+        }
+    }
+
+    function _checkBalance(_TestTemps memory t, address target) internal {
+        unchecked {
+            uint256 expected;
+            for (uint256 i; i < t.data.length; ++i) {
+                if (t.targets[i] == target) {
+                    expected += t.values[i];
+                }
+            }
+            assertEq(target.balance, expected);
         }
     }
 
@@ -556,7 +577,40 @@ contract MulticallerTest is TestPlus {
 
         _generateSignature(t);
 
-        _callMulticallerWithSigner(t, MulticallerWithSigner.Reentrancy.selector);
+        _callAndCheckMulticallerWithSigner(t, MulticallerWithSigner.Reentrancy.selector);
+    }
+
+    function testMulticallerWithSignerRevert() public {
+        string memory revertMessage = "Hehehehe";
+
+        _TestTemps memory t = _testTemps();
+        t.targets = new address[](1);
+        t.targets[0] = address(targetA);
+
+        t.values = new uint256[](1);
+
+        t.data = new bytes[](1);
+        t.data[0] =
+            abi.encodeWithSelector(MulticallerTarget.revertsWithString.selector, revertMessage);
+
+        _generateSignature(t);
+
+        vm.expectRevert(bytes(revertMessage));
+        _callMulticallerWithSigner(t, 0);
+
+        t.data[0] = abi.encodeWithSelector(MulticallerTarget.revertsWithCustomError.selector);
+
+        _generateSignature(t);
+
+        vm.expectRevert(MulticallerTarget.CustomError.selector);
+        _callMulticallerWithSigner(t, 0);
+
+        t.data[0] = abi.encodeWithSelector(MulticallerTarget.revertsWithNothing.selector);
+
+        _generateSignature(t);
+
+        vm.expectRevert();
+        _callMulticallerWithSigner(t, 0);
     }
 
     function testMulticallerWithSignerGetMulticallerSigner() public {
@@ -577,14 +631,30 @@ contract MulticallerTest is TestPlus {
 
         _generateSignature(t);
 
-        bytes[] memory results = _callMulticallerWithSigner(t, bytes4(0));
+        bytes[] memory results = _callAndCheckMulticallerWithSigner(t, bytes4(0));
         assertEq(abi.decode(results[0], (address)), t.signer);
         assertEq(abi.decode(results[1], (address)), t.signer);
         assertEq(abi.decode(results[2], (address)), address(multicallerWithSigner));
         assertEq(abi.decode(results[3], (address)), address(0));
     }
 
-    function _callMulticallerWithSigner(_TestTemps memory t, bytes4 errorSelector)
+    function _callMulticallerWithSigner(_TestTemps memory t, uint256 value)
+        internal
+        returns (bytes[] memory results)
+    {
+        results = multicallerWithSigner.aggregateWithSigner{value: value}(
+            string(t.message),
+            t.targets,
+            t.data,
+            t.values,
+            t.nonce,
+            t.nonceSalt,
+            t.signer,
+            t.signature
+        );
+    }
+
+    function _callAndCheckMulticallerWithSigner(_TestTemps memory t, bytes4 errorSelector)
         internal
         returns (bytes[] memory results)
     {
@@ -605,16 +675,7 @@ contract MulticallerTest is TestPlus {
             vm.expectRevert(errorSelector);
         }
 
-        results = multicallerWithSigner.aggregateWithSigner{value: valuesSum}(
-            string(t.message),
-            t.targets,
-            t.data,
-            t.values,
-            t.nonce,
-            t.nonceSalt,
-            t.signer,
-            t.signature
-        );
+        results = _callMulticallerWithSigner(t, valuesSum);
 
         if (errorSelector == bytes4(0)) {
             bool[] memory invalidated = multicallerWithSigner.noncesInvalidated(t.signer, nonces);
