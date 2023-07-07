@@ -301,8 +301,8 @@ contract MulticallerWithSigner {
     // =============================================================
 
     /**
-     * @dev Invalidate the `nonces` of the caller.
-     *      Emits a `NoncesInvalidated(signer, nonces)` event.
+     * @dev Invalidates the `nonces` of `msg.sender`.
+     *      Emits a `NoncesInvalidated(msg.sender, nonces)` event.
      * @param nonces An array of nonces to invalidate.
      */
     function invalidateNonces(uint256[] calldata nonces) external {
@@ -325,10 +325,10 @@ contract MulticallerWithSigner {
     }
 
     /**
-     * @dev Returns whether the `nonces` of `signer` have been invalidated.
+     * @dev Returns whether each of the `nonces` of `signer` has been invalidated.
      * @param signer The signer of the signature.
      * @param nonces An array of nonces.
-     * @return An array of whether each nonce of `signer` has been is used.
+     * @return A bool array representing whether each nonce has been invalidated.
      */
     function noncesInvalidated(address signer, uint256[] calldata nonces)
         external
@@ -352,7 +352,7 @@ contract MulticallerWithSigner {
     }
 
     /**
-     * @dev Increments the caller's nonce salt.
+     * @dev Increments the nonce salt of `msg.sender`.
      *      Will not make invalidated nonces available for use.
      *      Emits a `NonceSaltIncremented(msg.sender, newNonceSalt)` event.
      * @return The new nonce salt.
