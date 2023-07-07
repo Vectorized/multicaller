@@ -60,7 +60,8 @@ contract MulticallerWithSigner {
     error Reentrancy();
 
     /**
-     * @dev The signature is invalid.
+     * @dev The signature is invalid: it must be correctly signed by the signer,
+     *       with the correct data, an unused nonce, and the signer's current nonce salt.
      */
     error InvalidSignature();
 
@@ -72,7 +73,7 @@ contract MulticallerWithSigner {
         assembly {
             // Throughout this code, we will abuse returndatasize
             // in place of zero anywhere before a call to save a bit of gas.
-            // We will use storage slot zero to store the caller at
+            // We will use storage slot zero to store the signer at
             // bits [0..159] and reentrancy guard flag at bit 160.
             sstore(returndatasize(), shl(160, 1))
         }
@@ -105,7 +106,7 @@ contract MulticallerWithSigner {
      * @param values    How much ETH to forward to each target.
      * @param nonce     The nonce for the signature.
      * @param nonceSalt The salt for the nonce.
-     * @param signer    The signer for the signature.
+     * @param signer    The signer of the signature.
      * @param signature The signature by the signer.
      * @return An array of the returndata from each call.
      */
@@ -353,14 +354,17 @@ contract MulticallerWithSigner {
 
     /**
      * @dev Increments the nonce salt of `msg.sender`.
-     *      Will not make invalidated nonces available for use.
+     *      For making all unused signatures with the current nonce salt invalid.
+     *      Will NOT make invalidated nonces available for use.
      *      Emits a `NonceSaltIncremented(msg.sender, newNonceSalt)` event.
      * @return The new nonce salt.
      */
     function incrementNonceSalt() external returns (uint256) {
         assembly {
             let nonceSaltSlot := or(shl(96, caller()), 1)
-            let newNonceSalt := add(1, sload(nonceSaltSlot))
+            // Increment by some psuedorandom amount from [1..4294967296].
+            let newNonceSalt :=
+                add(add(1, shr(224, blockhash(sub(number(), 1)))), sload(nonceSaltSlot))
             sstore(nonceSaltSlot, newNonceSalt)
             // Emit `NonceSaltIncremented(msg.sender, newNonceSalt)`.
             mstore(returndatasize(), newNonceSalt)

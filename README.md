@@ -159,7 +159,9 @@ function incrementNonceSalt() external returns (uint256)
 
 Increments the nonce salt of `msg.sender`.
 
-Will not make invalidated nonces available for use.
+For making all unused signatures with the current nonce salt invalid.
+
+Will NOT make invalidated nonces available for use.
 
 Emits a `NonceSaltIncremented(msg.sender, newNonceSalt)` event.
 
