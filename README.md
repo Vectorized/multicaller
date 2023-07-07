@@ -125,7 +125,7 @@ function aggregateWithSigner(
 ```  
 Aggregates multiple calls in a single transaction.
 
-This method will set the multicaller signer to the `msg.sender` temporarily for the span of its execution.
+This method will set the multicaller signer to the `signer` temporarily for the span of its execution.
 
 This method does not support reentrancy.
 
