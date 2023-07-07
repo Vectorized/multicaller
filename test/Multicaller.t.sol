@@ -125,10 +125,10 @@ contract MulticallerTest is TestPlus {
         0x2cb4a0c8a59b119180cf9800efef271904b19c0d703bfc878a4a05adc3ad175e;
 
     bytes32 public constant MULTICALLER_WITH_SIGNER_CREATE2_SALT =
-        0x00000000000000000000000000000000000000004d70c968396e5c00fa96f702;
+        0x0000000000000000000000000000000000000000867b81b95644680132eb32b8;
 
     address public constant MULTICALLER_WITH_SIGNER_CREATE2_DEPLOYED_ADDRESS =
-        0x0000000000127e4A71cf68F2AB70cF90A9D726C8;
+        0x000000000000bC32da6C1837cb5a5aDA87dc7763;
 
     Multicaller multicaller;
     MulticallerWithSender multicallerWithSender;
@@ -636,6 +636,22 @@ contract MulticallerTest is TestPlus {
         assertEq(abi.decode(results[1], (address)), t.signer);
         assertEq(abi.decode(results[2], (address)), address(multicallerWithSigner));
         assertEq(abi.decode(results[3], (address)), address(0));
+    }
+
+    function testMulticallerWithSignerWithNoData() public {
+        _TestTemps memory t = _testTemps();
+        t.targets = new address[](0);
+
+        t.data = new bytes[](0);
+
+        t.values = new uint256[](0);
+
+        _generateSignature(t);
+
+        bytes[] memory results = _callAndCheckMulticallerWithSigner(t, bytes4(0));
+        assertEq(results.length, 0);
+
+        _callAndCheckMulticallerWithSigner(t, MulticallerWithSigner.InvalidSignature.selector);
     }
 
     function _callMulticallerWithSigner(_TestTemps memory t, uint256 value)
