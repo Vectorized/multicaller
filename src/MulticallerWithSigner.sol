@@ -74,8 +74,8 @@ contract MulticallerWithSigner {
             // Throughout this code, we will abuse returndatasize
             // in place of zero anywhere before a call to save a bit of gas.
             // We will use storage slot zero to store the signer at
-            // bits [0..159] and reentrancy guard flag at bit 160.
-            sstore(returndatasize(), shl(160, 1))
+            // bits [0..159] and reentrancy guard at bits [160..255].
+            sstore(returndatasize(), shl(160, address()))
         }
     }
 
@@ -89,7 +89,7 @@ contract MulticallerWithSigner {
      */
     receive() external payable {
         assembly {
-            mstore(returndatasize(), and(sub(shl(160, 1), 1), sload(returndatasize())))
+            mstore(returndatasize(), shr(96, shl(96, sload(returndatasize()))))
             return(returndatasize(), 0x20)
         }
     }
@@ -291,7 +291,7 @@ contract MulticallerWithSigner {
             mstore(0x20, targets.length) // Store `targets.length` into `results`.
 
             // Restore the `signer` slot.
-            sstore(0, shl(160, 1))
+            sstore(0, shl(160, address()))
             // Direct return.
             return(0x00, add(resultsOffset, 0x40))
         }

@@ -14,7 +14,7 @@ node .tmp/replace_imports.js;
 
 rm .tmp/foundry.toml > /dev/null 2>&1;
 
-forge build --out="out" --root=".tmp" --contracts="." --via-ir --optimize --optimizer-runs=1000000 --use=0.8.18;
+forge build --out="out" --root=".tmp" --contracts="." --via-ir --optimize --optimizer-runs=200 --use=0.8.18;
 
 mkdir multicaller_with_sender > /dev/null 2>&1;
 
@@ -36,7 +36,7 @@ fs.writeFileSync(
             }
         },
         "settings": {
-            "optimizer": { "enabled": true, "runs": 1000000 },
+            "optimizer": { "enabled": true, "runs": 200 },
             "viaIR": true,
             "outputSelection": { "*": { "*": [ "evm.bytecode", "evm.deployedBytecode", "abi" ] } }
         }
