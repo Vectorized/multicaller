@@ -18,22 +18,6 @@ Returns an array of the returndata from each call.
 
 ## MulticallerWithSender
 
-### Events
-
-#### `NoncesInvalidated`
-```solidity
-event NoncesInvalidated(address indexed signer, uint256[] nonces)
-```
-
-Emitted when the `nonces` of `signer` are invalidated.
-
-#### `NonceSaltIncremented`
-```solidity
-event NonceSaltIncremented(address indexed signer, uint256 newNonceSalt)
-```
-
-Emitted when the nonce salt of `signer` is incremented.
-
 ### Functions
 
 #### `aggregateWithSender`
@@ -61,6 +45,22 @@ Returns the caller of `aggregateWithSender` on the contract.
 The value is always the zero address outside a transaction.
 
 ## MulticallerWithSigner
+
+### Events
+
+#### `NoncesInvalidated`
+```solidity
+event NoncesInvalidated(address indexed signer, uint256[] nonces)
+```
+
+Emitted when the `nonces` of `signer` are invalidated.
+
+#### `NonceSaltIncremented`
+```solidity
+event NonceSaltIncremented(address indexed signer, uint256 newNonceSalt)
+```
+
+Emitted when the nonce salt of `signer` is incremented.
 
 ### Constants
 
