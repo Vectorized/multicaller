@@ -56,18 +56,17 @@ Returns an array of the returndata from each call.
 ```solidity
 receive() external payable
 ```  
-Returns the address that called `aggregateWithSender` on the contract.
+Returns the caller of `aggregateWithSender` on the contract.
 
 The value is always the zero address outside a transaction.
 
 ## MulticallerWithSigner
 
-### Functions
+### Constants
 
 #### `AGGREGATE_WITH_SIGNER_TYPEHASH`
 ```solidity
-bytes32 public constant AGGREGATE_WITH_SIGNER_TYPEHASH =
-    0xc4d2f044d99707794280032fc14879a220a3f7dc766d75100809624f91d69e97;
+bytes32 public constant AGGREGATE_WITH_SIGNER_TYPEHASH
 ```
 
 For EIP-712 signature digest calculation for the `aggregateWithSigner` function.
@@ -76,8 +75,7 @@ For EIP-712 signature digest calculation for the `aggregateWithSigner` function.
 
 #### `INVALIDATE_NONCES_FOR_SIGNER_TYPEHASH`
 ```solidity
-bytes32 public constant INVALIDATE_NONCES_FOR_SIGNER_TYPEHASH =
-    0xe75b4aefef1358e66ac7ed2f180022e0a7f661dcd2781630ce58e05bb8bdb1c1;
+bytes32 public constant INVALIDATE_NONCES_FOR_SIGNER_TYPEHASH
 ```
 
 For EIP-712 signature digest calculation for the `invalidateNoncesForSigner` function.
@@ -86,13 +84,14 @@ For EIP-712 signature digest calculation for the `invalidateNoncesForSigner` fun
 
 #### `INCREMENT_NONCE_SALT_FOR_SIGNER_TYPEHASH`
 ```solidity
-bytes32 public constant INCREMENT_NONCE_SALT_FOR_SIGNER_TYPEHASH =
-    0x898da98c106c91ce6f05405740b0ed23b5c4dc847a0dd1996fb93189d8310bef;
+bytes32 public constant INCREMENT_NONCE_SALT_FOR_SIGNER_TYPEHASH
 ```
 
 For EIP-712 signature digest calculation for the `incrementNonceSaltForSigner` function.
 
 `keccak256("IncrementNonceSaltForSigner(uint256 nonceSalt)")`.
+
+### Functions
 
 #### `aggregateWithSigner`
 ```solidity
@@ -218,7 +217,7 @@ Returns the EIP-712 domain information, as specified in [EIP-5267](https://eips.
 ```solidity
 receive() external payable
 ```  
-Returns the address that called `aggregateWithSigner` on the contract.
+Returns the caller of `aggregateWithSigner` on the contract.
 
 The value is always the zero address outside a transaction.
 
@@ -227,27 +226,50 @@ The value is always the zero address outside a transaction.
 
 Library to read the multicaller contracts.
 
+### Constants
+
+#### `MULTICALLER`
+```solidity
+address internal constant MULTICALLER
+```
+
+The address of the multicaller contract.
+
+#### `MULTICALLER_WITH_SENDER`
+```solidity
+address internal constant MULTICALLER_WITH_SENDER
+```
+
+The address of the multicaller with sender contract.
+
+#### `MULTICALLER_WITH_SIGNER`
+```solidity
+address internal constant MULTICALLER_WITH_SIGNER
+```
+
+The address of the multicaller with signer contract.
+
 ### Functions
 
 #### `multicallerSender`
 ```solidity
 function multicallerSender() internal view returns (address)
 ```  
-Returns the address that called `aggregateWithSender` on the multicaller with sender contract.
+Returns the caller of `aggregateWithSender` on the multicaller with sender contract.
 
 
 #### `multicallerSigner`
 ```solidity
 function multicallerSigner() internal view returns (address)
 ```  
-Returns the address that called `aggregateWithSigner` on the multicaller with signer contract.
+Returns the signer of `aggregateWithSigner` on the multicaller with signer contract.
 
 
 #### `sender`
 ```solidity
 function sender() internal view returns (address result)
 ```  
-Returns the address that called `aggregateWithSender` on the multicaller with sender contract, if `msg.sender` is the multicaller with sender contract.
+Returns the caller of `aggregateWithSender` on the multicaller with sender contract, if `msg.sender` is the multicaller with sender contract.
 
 Otherwise, returns `msg.sender`.
 
@@ -255,8 +277,8 @@ Otherwise, returns `msg.sender`.
 ```solidity
 function senderOrSigner() internal view returns (address result)
 ```  
-Returns the address that called `aggregateWithSender` on the multicaller with sender contract, if `msg.sender` is the multicaller with sender contract.
+Returns the caller of `aggregateWithSender` on the multicaller with sender contract, if `msg.sender` is the multicaller with sender contract.
 
-Returns the address that called `aggregateWithSigner` on the multicaller with signer contract, if `msg.sender` is the multicaller with signer contract.
+Returns the signer of `aggregateWithSigner` on the multicaller with signer contract, if `msg.sender` is the multicaller with signer contract.
 
 Otherwise, returns `msg.sender`.

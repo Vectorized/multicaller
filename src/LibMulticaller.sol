@@ -36,7 +36,7 @@ library LibMulticaller {
     }
 
     /**
-     * @dev Returns the caller of `aggregateWithSigner` on `MULTICALLER_WITH_SIGNER`.
+     * @dev Returns the signer of `aggregateWithSigner` on `MULTICALLER_WITH_SIGNER`.
      */
     function multicallerSigner() internal view returns (address result) {
         /// @solidity memory-safe-assembly
@@ -73,7 +73,7 @@ library LibMulticaller {
     /**
      * @dev Returns the caller of `aggregateWithSender` on `MULTICALLER_WITH_SENDER`,
      *      if the current context's `msg.sender` is `MULTICALLER_WITH_SENDER`.
-     *      Returns the caller of `aggregateWithSender` on `MULTICALLER_WITH_SIGNER`,
+     *      Returns the signer of `aggregateWithSigner` on `MULTICALLER_WITH_SIGNER`,
      *      if the current context's `msg.sender` is `MULTICALLER_WITH_SIGNER`.
      *      Otherwise, returns `msg.sender`.
      */
