@@ -39,11 +39,28 @@ contract MulticallerWithSigner {
     // =============================================================
 
     /**
-     * @dev For EIP-712 signature digest calculation.
-     * `keccak256("AggregateWithSigner(string message,address[] targets,bytes[] data,uint256[] values,uint256 nonce,uint256 nonceSalt)")`.
+     * @dev For EIP-712 signature digest calculation for the
+     *      `aggregateWithSigner` function.
+     *      `keccak256("AggregateWithSigner(string message,address[] targets,bytes[] data,uint256[] values,uint256 nonce,uint256 nonceSalt)")`.
      */
     bytes32 public constant AGGREGATE_WITH_SIGNER_TYPEHASH =
         0xc4d2f044d99707794280032fc14879a220a3f7dc766d75100809624f91d69e97;
+
+    /**
+     * @dev For EIP-712 signature digest calculation for the
+     *      `invalidateNoncesForSigner` function.
+     *      `keccak256("InvalidateNoncesForSigner(uint256[] nonces,uint256 nonceSalt)")`.
+     */
+    bytes32 public constant INVALIDATE_NONCES_FOR_SIGNER_TYPEHASH =
+        0xe75b4aefef1358e66ac7ed2f180022e0a7f661dcd2781630ce58e05bb8bdb1c1;
+
+    /**
+     * @dev For EIP-712 signature digest calculation for the
+     *      `incrementNonceSaltForSigner` function.
+     *      `keccak256("IncrementNonceSaltForSigner(uint256 nonceSalt)")`.
+     */
+    bytes32 public constant INCREMENT_NONCE_SALT_FOR_SIGNER_TYPEHASH =
+        0x898da98c106c91ce6f05405740b0ed23b5c4dc847a0dd1996fb93189d8310bef;
 
     // =============================================================
     //                            ERRORS
@@ -61,7 +78,7 @@ contract MulticallerWithSigner {
 
     /**
      * @dev The signature is invalid: it must be correctly signed by the signer,
-     *       with the correct data, an unused nonce, and the signer's current nonce salt.
+     *      with the correct data, an unused nonce, and the signer's current nonce salt.
      */
     error InvalidSignature();
 
@@ -105,7 +122,6 @@ contract MulticallerWithSigner {
      * @param data      An array of calldata to forward to the targets.
      * @param values    How much ETH to forward to each target.
      * @param nonce     The nonce for the signature.
-     * @param nonceSalt The salt for the nonce.
      * @param signer    The signer of the signature.
      * @param signature The signature by the signer.
      * @return An array of the returndata from each call.
@@ -116,7 +132,6 @@ contract MulticallerWithSigner {
         bytes[] calldata data,
         uint256[] calldata values,
         uint256 nonce,
-        uint256 nonceSalt,
         address signer,
         bytes calldata signature
     ) external payable returns (bytes[] memory) {
@@ -161,7 +176,7 @@ contract MulticallerWithSigner {
             mstore(0x80, keccak256(0x80, data.length))
             // Store `nonce` and `nonceSalt`.
             mstore(0xa0, nonce)
-            mstore(0xc0, nonceSalt)
+            mstore(0xc0, sload(or(shl(96, signer), 1)))
             mstore(0x40, keccak256(returndatasize(), 0xe0)) // Store the struct hash.
 
             // `keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)")`.
@@ -202,14 +217,13 @@ contract MulticallerWithSigner {
             // `returndatasize()` will be `0x20` upon success, and `0x00` otherwise.
             let recoverySuccess := mul(returndatasize(), eq(mload(0x00), signer))
 
-            // Check `nonce` and `nonceSalt`.
+            // Check `nonce`.
             mstore(0x00, signer)
             mstore(0x20, shr(8, nonce))
-            let bucketSlot := keccak256(0x0c, 0x34)
+            let bucketSlot := keccak256(0x00, 0x40)
             let bucketValue := sload(bucketSlot)
             let bit := shl(and(0xff, nonce), 1)
-            let saltInvalid := xor(sload(or(shl(96, signer), 1)), nonceSalt)
-            if or(iszero(recoverySuccess), or(and(bit, bucketValue), saltInvalid)) {
+            if or(iszero(recoverySuccess), and(bit, bucketValue)) {
                 mstore(0x00, 0x8baa579f) // `InvalidSignature()`.
                 revert(0x1c, 0x04)
             }
@@ -314,7 +328,7 @@ contract MulticallerWithSigner {
             for { let i := returndatasize() } iszero(eq(i, end)) { i := add(i, 0x20) } {
                 let nonce := calldataload(add(nonces.offset, i))
                 mstore(0x20, shr(8, nonce))
-                let bucketSlot := keccak256(0x0c, 0x34)
+                let bucketSlot := keccak256(returndatasize(), 0x40)
                 sstore(bucketSlot, or(sload(bucketSlot), shl(and(0xff, nonce), 1)))
             }
             // Emit `NoncesInvalidated(msg.sender, nonces)`.
@@ -322,6 +336,85 @@ contract MulticallerWithSigner {
             mstore(0x20, nonces.length)
             calldatacopy(0x40, nonces.offset, end)
             log2(returndatasize(), add(0x40, end), _NONCES_INVALIDATED_EVENT_SIGNATURE, caller())
+        }
+    }
+
+    /**
+     * @dev Invalidates the `nonces` of `signer`.
+     *      Emits a `NoncesInvalidated(signer, nonces)` event.
+     * @param nonces    An array of nonces to invalidate.
+     * @param signer    The signer of the signature.
+     * @param signature The signature by the signer.
+     */
+    function invalidateNoncesForSigner(
+        uint256[] calldata nonces,
+        address signer,
+        bytes calldata signature
+    ) external {
+        assembly {
+            // Store `INVALIDATE_NONCES_FOR_SIGNER_TYPEHASH`.
+            mstore(returndatasize(), INVALIDATE_NONCES_FOR_SIGNER_TYPEHASH)
+            // Compute and store `keccak256(abi.encodePacked(nonces))`.
+            calldatacopy(0x20, nonces.offset, shl(5, nonces.length))
+            mstore(0x20, keccak256(0x20, shl(5, nonces.length)))
+            mstore(0x40, sload(or(shl(96, signer), 1))) // Store the `nonceSalt`.
+            mstore(0x40, keccak256(returndatasize(), 0x60)) // Store the struct hash.
+
+            // `keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)")`.
+            mstore(0x80, 0x8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f)
+            // `keccak256("MulticallerWithSigner")`.
+            mstore(0xa0, 0x301013e8a31863902646dc218ecd889c37491c2967a8104d5ff1cf42af0f9ea4)
+            // `keccak256("1")`.
+            mstore(0xc0, 0xc89efdaa54c0f20c7adf612882df0950f5a951637e0307cdcb4c672f298b8bc6)
+            mstore(0xe0, chainid())
+            mstore(0x100, address())
+
+            // Compute the digest.
+            mstore(returndatasize(), 0x1901) // Store "\x19\x01".
+            mstore(0x20, keccak256(0x80, 0xa0)) // Store the domain separator.
+
+            // Recover the signer from the `digest` and `signature`.
+            mstore(returndatasize(), keccak256(0x1e, 0x42)) // `digest`.
+            mstore(0x20, byte(returndatasize(), calldataload(add(signature.offset, 0x40)))) // `v`.
+            calldatacopy(0x40, signature.offset, 0x40) // Copy `r` and `s`.
+            pop(
+                staticcall(
+                    gas(), // Amount of gas left for the transaction.
+                    and(
+                        // If the signature is exactly 65 bytes in length.
+                        eq(signature.length, 65),
+                        // If `s` in lower half order, such that the signature is not malleable.
+                        lt(
+                            mload(0x60),
+                            0x7fffffffffffffffffffffffffffffff5d576e7357a4501ddfe92f46681b20a1
+                        )
+                    ), // Address of `ecrecover`.
+                    returndatasize(), // Start of input.
+                    0x80, // Size of input.
+                    returndatasize(), // Start of output.
+                    0x20 // Size of output.
+                )
+            )
+            // `returndatasize()` will be `0x20` upon success, and `0x00` otherwise.
+            if iszero(mul(returndatasize(), eq(mload(0x00), signer))) {
+                mstore(0x00, 0x8baa579f) // `InvalidSignature()`.
+                revert(0x1c, 0x04)
+            }
+
+            mstore(0x00, signer)
+            // Iterate through all the nonces and set their boolean values in the storage.
+            let end := shl(5, nonces.length)
+            for { let i := 0 } iszero(eq(i, end)) { i := add(i, 0x20) } {
+                let nonce := calldataload(add(nonces.offset, i))
+                mstore(0x20, shr(8, nonce))
+                let bucketSlot := keccak256(0x00, 0x40)
+                sstore(bucketSlot, or(sload(bucketSlot), shl(and(0xff, nonce), 1)))
+            }
+            // Emit `NoncesInvalidated(msg.sender, nonces)`.
+            mstore(0x00, 0x20)
+            mstore(0x20, nonces.length)
+            calldatacopy(0x40, nonces.offset, end)
+            log2(0x00, add(0x40, end), _NONCES_INVALIDATED_EVENT_SIGNATURE, signer)
         }
     }
 
@@ -343,7 +436,7 @@ contract MulticallerWithSigner {
             for { let i := returndatasize() } iszero(eq(i, end)) { i := add(i, 0x20) } {
                 let nonce := calldataload(add(nonces.offset, i))
                 mstore(0x20, shr(8, nonce))
-                let bit := and(1, shr(and(0xff, nonce), sload(keccak256(0x0c, 0x34))))
+                let bit := and(1, shr(and(0xff, nonce), sload(keccak256(returndatasize(), 0x40))))
                 mstore(add(0x40, i), bit)
             }
             mstore(returndatasize(), 0x20) // Store the memory offset of the `results`.
@@ -370,6 +463,79 @@ contract MulticallerWithSigner {
             mstore(returndatasize(), newNonceSalt)
             log2(returndatasize(), 0x20, _NONCE_SALT_INCREMENTED_EVENT_SIGNATURE, caller())
             return(returndatasize(), 0x20)
+        }
+    }
+
+    /**
+     * @dev Increments the nonce salt of `signer`.
+     *      For making all unused signatures with the current nonce salt invalid.
+     *      Will NOT make invalidated nonces available for use.
+     *      Emits a `NonceSaltIncremented(signer, newNonceSalt)` event.
+     * @param signer    The signer of the signature.
+     * @param signature The signature by the signer.
+     * @return The new nonce salt.
+     */
+    function incrementNonceSaltForSigner(address signer, bytes calldata signature)
+        external
+        returns (uint256)
+    {
+        assembly {
+            let nonceSaltSlot := or(shl(96, signer), 1)
+            let nonceSalt := sload(nonceSaltSlot)
+
+            // Store `INCREMENT_NONCE_SALT_FOR_SIGNER_TYPEHASH`.
+            mstore(returndatasize(), INCREMENT_NONCE_SALT_FOR_SIGNER_TYPEHASH)
+            mstore(0x20, nonceSalt) // Store the `nonceSalt`.
+            mstore(0x40, keccak256(returndatasize(), 0x40)) // Store the struct hash.
+
+            // `keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)")`.
+            mstore(0x80, 0x8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f)
+            // `keccak256("MulticallerWithSigner")`.
+            mstore(0xa0, 0x301013e8a31863902646dc218ecd889c37491c2967a8104d5ff1cf42af0f9ea4)
+            // `keccak256("1")`.
+            mstore(0xc0, 0xc89efdaa54c0f20c7adf612882df0950f5a951637e0307cdcb4c672f298b8bc6)
+            mstore(0xe0, chainid())
+            mstore(0x100, address())
+
+            // Compute the digest.
+            mstore(returndatasize(), 0x1901) // Store "\x19\x01".
+            mstore(0x20, keccak256(0x80, 0xa0)) // Store the domain separator.
+
+            // Recover the signer from the `digest` and `signature`.
+            mstore(returndatasize(), keccak256(0x1e, 0x42)) // `digest`.
+            mstore(0x20, byte(returndatasize(), calldataload(add(signature.offset, 0x40)))) // `v`.
+            calldatacopy(0x40, signature.offset, 0x40) // Copy `r` and `s`.
+            pop(
+                staticcall(
+                    gas(), // Amount of gas left for the transaction.
+                    and(
+                        // If the signature is exactly 65 bytes in length.
+                        eq(signature.length, 65),
+                        // If `s` in lower half order, such that the signature is not malleable.
+                        lt(
+                            mload(0x60),
+                            0x7fffffffffffffffffffffffffffffff5d576e7357a4501ddfe92f46681b20a1
+                        )
+                    ), // Address of `ecrecover`.
+                    returndatasize(), // Start of input.
+                    0x80, // Size of input.
+                    returndatasize(), // Start of output.
+                    0x20 // Size of output.
+                )
+            )
+            // `returndatasize()` will be `0x20` upon success, and `0x00` otherwise.
+            if iszero(mul(returndatasize(), eq(mload(0x00), signer))) {
+                mstore(0x00, 0x8baa579f) // `InvalidSignature()`.
+                revert(0x1c, 0x04)
+            }
+
+            // Increment by some psuedorandom amount from [1..4294967296].
+            let newNonceSalt := add(add(1, shr(224, blockhash(sub(number(), 1)))), nonceSalt)
+            sstore(nonceSaltSlot, newNonceSalt)
+            // Emit `NonceSaltIncremented(msg.sender, newNonceSalt)`.
+            mstore(0x00, newNonceSalt)
+            log2(0x00, 0x20, _NONCE_SALT_INCREMENTED_EVENT_SIGNATURE, signer)
+            return(0x00, 0x20)
         }
     }
 

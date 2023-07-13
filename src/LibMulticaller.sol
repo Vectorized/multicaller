@@ -20,7 +20,7 @@ library LibMulticaller {
     /**
      * @dev The address of the multicaller with signer contract.
      */
-    address internal constant MULTICALLER_WITH_SIGNER = 0x000000000000B06107881d4b55B76Cee8DeC3728;
+    address internal constant MULTICALLER_WITH_SIGNER = 0x000000000000170e5D7101e83BAdd14e03AdeB51;
 
     /**
      * @dev Returns the caller of `aggregateWithSender` on `MULTICALLER_WITH_SENDER`.

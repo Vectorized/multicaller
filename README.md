@@ -13,31 +13,31 @@ Enables "forwarding" of `msg.sender` to the contracts called.
 - Ethereum 
   - Multicaller: [`0x000000000088228fCF7b8af41Faf3955bD0B3A41`](https://etherscan.io/address/0x000000000088228fCF7b8af41Faf3955bD0B3A41)
   - MulticallerWithSender: [`0x00000000002Fd5Aeb385D324B580FCa7c83823A0`](https://etherscan.io/address/0x00000000002Fd5Aeb385D324B580FCa7c83823A0)
-  - MulticallerWithSigner: [`0x000000000000B06107881d4b55B76Cee8DeC3728`](https://etherscan.io/address/0x000000000000B06107881d4b55B76Cee8DeC3728)
+  - MulticallerWithSigner: [`0x000000000000170e5D7101e83BAdd14e03AdeB51`](https://etherscan.io/address/0x000000000000170e5D7101e83BAdd14e03AdeB51)
 - Goerli 
   - Multicaller: [`0x000000000088228fCF7b8af41Faf3955bD0B3A41`](https://goerli.etherscan.io/address/0x000000000088228fCF7b8af41Faf3955bD0B3A41)
   - MulticallerWithSender: [`0x00000000002Fd5Aeb385D324B580FCa7c83823A0`](https://goerli.etherscan.io/address/0x00000000002Fd5Aeb385D324B580FCa7c83823A0)
-  - MulticallerWithSigner: [`0x000000000000B06107881d4b55B76Cee8DeC3728`](https://goerli.etherscan.io/address/0x000000000000B06107881d4b55B76Cee8DeC3728)
+  - MulticallerWithSigner: [`0x000000000000170e5D7101e83BAdd14e03AdeB51`](https://goerli.etherscan.io/address/0x000000000000170e5D7101e83BAdd14e03AdeB51)
 - Sepolia 
   - Multicaller: [`0x000000000088228fCF7b8af41Faf3955bD0B3A41`](https://sepolia.etherscan.io/address/0x000000000088228fCF7b8af41Faf3955bD0B3A41)
   - MulticallerWithSender: [`0x00000000002Fd5Aeb385D324B580FCa7c83823A0`](https://sepolia.etherscan.io/address/0x00000000002Fd5Aeb385D324B580FCa7c83823A0)
-  - MulticallerWithSigner: [`0x000000000000B06107881d4b55B76Cee8DeC3728`](https://sepolia.etherscan.io/address/0x000000000000B06107881d4b55B76Cee8DeC3728)
+  - MulticallerWithSigner: [`0x000000000000170e5D7101e83BAdd14e03AdeB51`](https://sepolia.etherscan.io/address/0x000000000000170e5D7101e83BAdd14e03AdeB51)
 - Polygon 
   - Multicaller: [`0x000000000088228fCF7b8af41Faf3955bD0B3A41`](https://polygonscan.com/address/0x000000000088228fCF7b8af41Faf3955bD0B3A41)
   - MulticallerWithSender: [`0x00000000002Fd5Aeb385D324B580FCa7c83823A0`](https://polygonscan.com/address/0x00000000002Fd5Aeb385D324B580FCa7c83823A0)
-  - MulticallerWithSigner: [`0x000000000000B06107881d4b55B76Cee8DeC3728`](https://polygonscan.com/address/0x000000000000B06107881d4b55B76Cee8DeC3728)
+  - MulticallerWithSigner: [`0x000000000000170e5D7101e83BAdd14e03AdeB51`](https://polygonscan.com/address/0x000000000000170e5D7101e83BAdd14e03AdeB51)
 - Mumbai 
   - Multicaller: [`0x000000000088228fCF7b8af41Faf3955bD0B3A41`](https://mumbai.polygonscan.com/address/0x000000000088228fCF7b8af41Faf3955bD0B3A41)
   - MulticallerWithSender: [`0x00000000002Fd5Aeb385D324B580FCa7c83823A0`](https://mumbai.polygonscan.com/address/0x00000000002Fd5Aeb385D324B580FCa7c83823A0)
-  - MulticallerWithSigner: [`0x000000000000B06107881d4b55B76Cee8DeC3728`](https://mumbai.polygonscan.com/address/0x000000000000B06107881d4b55B76Cee8DeC3728)
+  - MulticallerWithSigner: [`0x000000000000170e5D7101e83BAdd14e03AdeB51`](https://mumbai.polygonscan.com/address/0x000000000000170e5D7101e83BAdd14e03AdeB51)
 - Optimism 
   - Multicaller: [`0x000000000088228fCF7b8af41Faf3955bD0B3A41`](https://optimistic.etherscan.io/address/0x000000000088228fCF7b8af41Faf3955bD0B3A41)
   - MulticallerWithSender: [`0x00000000002Fd5Aeb385D324B580FCa7c83823A0`](https://optimistic.etherscan.io/address/0x00000000002Fd5Aeb385D324B580FCa7c83823A0)
-  - MulticallerWithSigner: [`0x000000000000B06107881d4b55B76Cee8DeC3728`](https://optimistic.etherscan.io/address/0x000000000000B06107881d4b55B76Cee8DeC3728)
+  - MulticallerWithSigner: [`0x000000000000170e5D7101e83BAdd14e03AdeB51`](https://optimistic.etherscan.io/address/0x000000000000170e5D7101e83BAdd14e03AdeB51)
 - Arbitrum 
   - Multicaller: [`0x000000000088228fCF7b8af41Faf3955bD0B3A41`](https://arbiscan.io/address/0x000000000088228fCF7b8af41Faf3955bD0B3A41)
   - MulticallerWithSender: [`0x00000000002Fd5Aeb385D324B580FCa7c83823A0`](https://arbiscan.io/address/0x00000000002Fd5Aeb385D324B580FCa7c83823A0)
-  - MulticallerWithSigner: [`0x000000000000B06107881d4b55B76Cee8DeC3728`](https://arbiscan.io/address/0x000000000000B06107881d4b55B76Cee8DeC3728)
+  - MulticallerWithSigner: [`0x000000000000170e5D7101e83BAdd14e03AdeB51`](https://arbiscan.io/address/0x000000000000170e5D7101e83BAdd14e03AdeB51)
 
 Please open an issue if you need help to deploy to an EVM chain of your choice.
 
@@ -73,10 +73,11 @@ npm install multicaller
 
 #### `aggregate`
 ```solidity
-function aggregate(address[] calldata targets, bytes[] calldata data, uint256[] calldata values)
-    external
-    payable
-    returns (bytes[] memory)
+function aggregate(
+    address[] calldata targets,
+    bytes[] calldata data,
+    uint256[] calldata values
+) external payable returns (bytes[] memory)
 ```  
 Aggregates multiple calls in a single transaction.
 
@@ -86,10 +87,11 @@ Returns an array of the returndata from each call.
 
 #### `aggregateWithSender`
 ```solidity
-function aggregateWithSender(address[] calldata targets, bytes[] calldata data, uint256[] calldata values)
-    external
-    payable
-    returns (bytes[] memory)
+function aggregateWithSender(
+    address[] calldata targets, 
+    bytes[] calldata data, 
+    uint256[] calldata values
+) external payable returns (bytes[] memory)
 ```  
 Aggregates multiple calls in a single transaction.
 
@@ -117,7 +119,6 @@ function aggregateWithSigner(
     address[] calldata targets,
     bytes[] calldata data,
     uint256[] calldata values,
-    uint256 nonce,
     uint256 nonceSalt,
     address signer,
     bytes calldata signature
@@ -142,6 +143,19 @@ Invalidates the `nonces` of `msg.sender`.
 
 Emits a `NoncesInvalidated(msg.sender, nonces)` event.
 
+#### `invalidateNoncesForSigner`
+```solidity
+function invalidateNoncesForSigner(
+    uint256[] calldata nonces,
+    address signer,
+    bytes calldata signature
+) external
+```
+
+Invalidates the `nonces` of `signer`.
+
+Emits a `NoncesInvalidated(signer, nonces)` event.
+
 #### `noncesInvalidated`
 ```solidity
 function noncesInvalidated(address signer, uint256[] calldata nonces)
@@ -164,6 +178,24 @@ For making all unused signatures with the current nonce salt invalid.
 Will NOT make invalidated nonces available for use.
 
 Emits a `NonceSaltIncremented(msg.sender, newNonceSalt)` event.
+
+Returns the new nonce salt.
+
+#### `incrementNonceSaltForSigner`
+```solidity
+function incrementNonceSaltForSigner(
+    address signer,
+    bytes calldata signature
+) external returns (uint256)
+```
+
+Increments the nonce salt of `signer`.
+
+For making all unused signatures with the current nonce salt invalid.
+
+Will NOT make invalidated nonces available for use.
+
+Emits a `NonceSaltIncremented(signer, newNonceSalt)` event.
 
 Returns the new nonce salt.
 
