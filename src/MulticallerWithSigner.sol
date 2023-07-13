@@ -553,7 +553,7 @@ contract MulticallerWithSigner {
 
     /**
      * @dev Returns the EIP-712 domain information, as specified in
-     *       [EIP-5267](https://eips.ethereum.org/EIPS/eip-5267).
+     *      [EIP-5267](https://eips.ethereum.org/EIPS/eip-5267).
      * @return fields            `hex"0f"` (`0b01111`).
      * @return name              `"MulticallerWithSender"`.
      * @return version           `"1"`.

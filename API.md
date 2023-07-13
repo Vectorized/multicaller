@@ -1,6 +1,10 @@
+# API
+
 ## Multicaller
 
-### `aggregate`
+### Functions
+
+#### `aggregate`
 ```solidity
 function aggregate(
     address[] calldata targets,
@@ -14,7 +18,25 @@ Returns an array of the returndata from each call.
 
 ## MulticallerWithSender
 
-### `aggregateWithSender`
+### Events
+
+#### `NoncesInvalidated`
+```solidity
+event NoncesInvalidated(address indexed signer, uint256[] nonces)
+```
+
+Emitted when the `nonces` of `signer` are invalidated.
+
+#### `NonceSaltIncremented`
+```solidity
+event NonceSaltIncremented(address indexed signer, uint256 newNonceSalt)
+```
+
+Emitted when the nonce salt of `signer` is incremented.
+
+### Functions
+
+#### `aggregateWithSender`
 ```solidity
 function aggregateWithSender(
     address[] calldata targets, 
@@ -30,7 +52,7 @@ This method does not support reentrancy.
 
 Returns an array of the returndata from each call.
 
-### `receive`
+#### `receive`
 ```solidity
 receive() external payable
 ```  
@@ -40,7 +62,39 @@ The value is always the zero address outside a transaction.
 
 ## MulticallerWithSigner
 
-### `aggregateWithSigner`
+### Functions
+
+#### `AGGREGATE_WITH_SIGNER_TYPEHASH`
+```solidity
+bytes32 public constant AGGREGATE_WITH_SIGNER_TYPEHASH =
+    0xc4d2f044d99707794280032fc14879a220a3f7dc766d75100809624f91d69e97;
+```
+
+For EIP-712 signature digest calculation for the `aggregateWithSigner` function.
+
+`keccak256("AggregateWithSigner(string message,address[] targets,bytes[] data,uint256[] values,uint256 nonce,uint256 nonceSalt)")`.
+
+#### `INVALIDATE_NONCES_FOR_SIGNER_TYPEHASH`
+```solidity
+bytes32 public constant INVALIDATE_NONCES_FOR_SIGNER_TYPEHASH =
+    0xe75b4aefef1358e66ac7ed2f180022e0a7f661dcd2781630ce58e05bb8bdb1c1;
+```
+
+For EIP-712 signature digest calculation for the `invalidateNoncesForSigner` function.
+
+`keccak256("InvalidateNoncesForSigner(uint256[] nonces,uint256 nonceSalt)")`.
+
+#### `INCREMENT_NONCE_SALT_FOR_SIGNER_TYPEHASH`
+```solidity
+bytes32 public constant INCREMENT_NONCE_SALT_FOR_SIGNER_TYPEHASH =
+    0x898da98c106c91ce6f05405740b0ed23b5c4dc847a0dd1996fb93189d8310bef;
+```
+
+For EIP-712 signature digest calculation for the `incrementNonceSaltForSigner` function.
+
+`keccak256("IncrementNonceSaltForSigner(uint256 nonceSalt)")`.
+
+#### `aggregateWithSigner`
 ```solidity
 function aggregateWithSigner(
     string memory message,
@@ -62,7 +116,7 @@ Emits a `NoncesInvalidated(signer, [nonce])` event.
 
 Returns an array of the returndata from each call.
 
-### `invalidateNonces`
+#### `invalidateNonces`
 ```solidity
 function invalidateNonces(uint256[] calldata nonces) external
 ```
@@ -71,7 +125,7 @@ Invalidates the `nonces` of `msg.sender`.
 
 Emits a `NoncesInvalidated(msg.sender, nonces)` event.
 
-### `invalidateNoncesForSigner`
+#### `invalidateNoncesForSigner`
 ```solidity
 function invalidateNoncesForSigner(
     uint256[] calldata nonces,
@@ -84,7 +138,7 @@ Invalidates the `nonces` of `signer`.
 
 Emits a `NoncesInvalidated(signer, nonces)` event.
 
-### `noncesInvalidated`
+#### `noncesInvalidated`
 ```solidity
 function noncesInvalidated(address signer, uint256[] calldata nonces)
     external
@@ -94,7 +148,7 @@ function noncesInvalidated(address signer, uint256[] calldata nonces)
 
 Returns whether each of the `nonces` of `signer` has been invalidated.
 
-### `incrementNonceSalt`
+#### `incrementNonceSalt`
 ```solidity
 function incrementNonceSalt() external returns (uint256)
 ```
@@ -109,7 +163,7 @@ Emits a `NonceSaltIncremented(msg.sender, newNonceSalt)` event.
 
 Returns the new nonce salt.
 
-### `incrementNonceSaltForSigner`
+#### `incrementNonceSaltForSigner`
 ```solidity
 function incrementNonceSaltForSigner(
     address signer,
@@ -127,14 +181,14 @@ Emits a `NonceSaltIncremented(signer, newNonceSalt)` event.
 
 Returns the new nonce salt.
 
-### `nonceSaltOf`
+#### `nonceSaltOf`
 ```solidity
 function nonceSaltOf(address signer) external view returns (uint256)
 ```
 
 Returns the nonce salt of `signer`.
 
-### `eip712Domain`
+#### `eip712Domain`
 ```solidity
 function eip712Domain()
     external
@@ -152,7 +206,15 @@ function eip712Domain()
 
 Returns the EIP-712 domain information, as specified in [EIP-5267](https://eips.ethereum.org/EIPS/eip-5267).
 
-### `receive`
+- fields            `hex"0f"` (`0b01111`).
+- name              `"MulticallerWithSender"`.
+- version           `"1"`.
+- chainId           The chain ID which this contract is on.
+- verifyingContract `address(this)`, the address of this contract.
+- salt              `bytes32(0)` (not used).
+- extensions        `[]` (not used).
+
+#### `receive`
 ```solidity
 receive() external payable
 ```  
@@ -165,21 +227,23 @@ The value is always the zero address outside a transaction.
 
 Library to read the multicaller contracts.
 
-### `multicallerSender`
+### Functions
+
+#### `multicallerSender`
 ```solidity
 function multicallerSender() internal view returns (address)
 ```  
 Returns the address that called `aggregateWithSender` on the multicaller with sender contract.
 
 
-### `multicallerSigner`
+#### `multicallerSigner`
 ```solidity
 function multicallerSigner() internal view returns (address)
 ```  
 Returns the address that called `aggregateWithSigner` on the multicaller with signer contract.
 
 
-### `sender`
+#### `sender`
 ```solidity
 function sender() internal view returns (address result)
 ```  
@@ -187,7 +251,7 @@ Returns the address that called `aggregateWithSender` on the multicaller with se
 
 Otherwise, returns `msg.sender`.
 
-### `senderOrSigner`
+#### `senderOrSigner`
 ```solidity
 function senderOrSigner() internal view returns (address result)
 ```  
