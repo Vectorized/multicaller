@@ -62,6 +62,34 @@ contract MulticallerWithSigner {
     bytes32 public constant INCREMENT_NONCE_SALT_FOR_SIGNER_TYPEHASH =
         0x898da98c106c91ce6f05405740b0ed23b5c4dc847a0dd1996fb93189d8310bef;
 
+    /**
+     * @dev For EIP-712 signature digest calculation.
+     *      `keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)")`.
+     */
+    bytes32 private constant _DOMAIN_TYPEHASH =
+        0x8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f;
+
+    /**
+     * @dev For EIP-712 signature digest calculation.
+     *      `keccak256("MulticallerWithSigner")`.
+     */
+    bytes32 private constant _NAME_HASH =
+        0x301013e8a31863902646dc218ecd889c37491c2967a8104d5ff1cf42af0f9ea4;
+
+    /**
+     * @dev For EIP-712 signature digest calculation.
+     *      `keccak256("1")`.
+     */
+    bytes32 private constant _VERSION_HASH =
+        0xc89efdaa54c0f20c7adf612882df0950f5a951637e0307cdcb4c672f298b8bc6;
+
+    /**
+     * @dev The number which `s` must be less than in order for
+     *      the signature to be non-malleable.
+     */
+    bytes32 private constant _S_THRES =
+        0x7fffffffffffffffffffffffffffffff5d576e7357a4501ddfe92f46681b20a1;
+
     // =============================================================
     //                            ERRORS
     // =============================================================
@@ -137,33 +165,28 @@ contract MulticallerWithSigner {
     ) external payable returns (bytes[] memory) {
         assembly {
             if iszero(and(eq(targets.length, data.length), eq(data.length, values.length))) {
-                // Store the function selector of `ArrayLengthsMismatch()`.
-                mstore(returndatasize(), 0x3b800a46)
-                // Revert with (offset, size).
+                mstore(returndatasize(), 0x3b800a46) // `ArrayLengthsMismatch()`.
                 revert(0x1c, 0x04)
             }
 
             if iszero(shr(160, sload(returndatasize()))) {
-                // Store the function selector of `Reentrancy()`.
-                mstore(returndatasize(), 0xab143c06)
-                // Revert with (offset, size).
+                mstore(returndatasize(), 0xab143c06) // `Reentrancy()`.
                 revert(0x1c, 0x04)
             }
 
             // Multiply `data.length` by 0x20. This is the byte length of `targets`, `data`, values`.
             data.length := shl(5, data.length)
 
-            /* --------------------- CHECK SIGNATURE -------------------- */
+            /* -------------------- CHECK SIGNATURE --------------------- */
 
-            // Store `AGGREGATE_WITH_SIGNER_TYPEHASH`.
+            // Layout the fields of the struct hash.
             mstore(returndatasize(), AGGREGATE_WITH_SIGNER_TYPEHASH)
             // Compute and store `keccak256(abi.encodePacked(message))`.
             mstore(0x20, keccak256(add(message, 0x20), mload(message)))
             // Compute and store `keccak256(abi.encodePacked(targets))`.
             calldatacopy(0x40, targets.offset, data.length)
             mstore(0x40, keccak256(0x40, data.length))
-            // Compute and store
-            // `keccak256(abi.encodePacked(keccak256(data[0]), .., keccak256(data[n-1])))`.
+            // Compute and store `keccak256(abi.encodePacked(keccak256(data[0]), ..))`.
             for { let i := returndatasize() } iszero(eq(i, data.length)) { i := add(i, 0x20) } {
                 let o := add(data.offset, calldataload(add(data.offset, i)))
                 let p := add(0x60, i)
@@ -174,50 +197,35 @@ contract MulticallerWithSigner {
             // Compute and store `keccak256(abi.encodePacked(values))`.
             calldatacopy(0x80, values.offset, data.length)
             mstore(0x80, keccak256(0x80, data.length))
-            // Store `nonce` and `nonceSalt`.
-            mstore(0xa0, nonce)
-            mstore(0xc0, sload(or(shl(96, signer), 1)))
-            mstore(0x40, keccak256(returndatasize(), 0xe0)) // Store the struct hash.
-
-            // `keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)")`.
-            mstore(0x80, 0x8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f)
-            // `keccak256("MulticallerWithSigner")`.
-            mstore(0xa0, 0x301013e8a31863902646dc218ecd889c37491c2967a8104d5ff1cf42af0f9ea4)
-            // `keccak256("1")`.
-            mstore(0xc0, 0xc89efdaa54c0f20c7adf612882df0950f5a951637e0307cdcb4c672f298b8bc6)
+            mstore(0xa0, nonce) // Store the nonce.
+            mstore(0xc0, sload(or(shl(96, signer), 1))) // Store the nonce salt.
+            mstore(0x40, keccak256(returndatasize(), 0xe0)) // Compute and store the struct hash.
+            // Layout the fields of the domain separator.
+            mstore(0x80, _DOMAIN_TYPEHASH)
+            mstore(0xa0, _NAME_HASH)
+            mstore(0xc0, _VERSION_HASH)
             mstore(0xe0, chainid())
             mstore(0x100, address())
-
-            // Compute the digest.
+            mstore(0x20, keccak256(0x80, 0xa0)) // Compute and store the domain separator.
+            // Layout the fields of `ecrecover`.
             mstore(returndatasize(), 0x1901) // Store "\x19\x01".
-            mstore(0x20, keccak256(0x80, 0xa0)) // Store the domain separator.
-
-            // Recover the signer from the `digest` and `signature`.
-            mstore(returndatasize(), keccak256(0x1e, 0x42)) // `digest`.
+            mstore(returndatasize(), keccak256(0x1e, 0x42)) // Compute and store the digest.
             mstore(0x20, byte(returndatasize(), calldataload(add(signature.offset, 0x40)))) // `v`.
             calldatacopy(0x40, signature.offset, 0x40) // Copy `r` and `s`.
             pop(
                 staticcall(
                     gas(), // Amount of gas left for the transaction.
-                    and(
-                        // If the signature is exactly 65 bytes in length.
-                        eq(signature.length, 65),
-                        // If `s` in lower half order, such that the signature is not malleable.
-                        lt(
-                            mload(0x60),
-                            0x7fffffffffffffffffffffffffffffff5d576e7357a4501ddfe92f46681b20a1
-                        )
-                    ), // Address of `ecrecover`.
+                    and(eq(signature.length, 65), lt(mload(0x60), _S_THRES)), // `ecrecover`.
                     returndatasize(), // Start of input.
                     0x80, // Size of input.
                     returndatasize(), // Start of output.
                     0x20 // Size of output.
                 )
             )
-            // `returndatasize()` will be `0x20` upon success, and `0x00` otherwise.
+            // `returndatasize()` will be 32 upon success and 0 otherwise.
             let recoverySuccess := mul(returndatasize(), eq(mload(0x00), signer))
 
-            // Check `nonce`.
+            // Check the nonce.
             mstore(0x00, signer)
             mstore(0x20, shr(8, nonce))
             let bucketSlot := keccak256(0x00, 0x40)
@@ -227,8 +235,7 @@ contract MulticallerWithSigner {
                 mstore(0x00, 0x8baa579f) // `InvalidSignature()`.
                 revert(0x1c, 0x04)
             }
-            // Invalidate the nonce.
-            sstore(bucketSlot, or(bucketValue, bit))
+            sstore(bucketSlot, or(bucketValue, bit)) // Invalidate the nonce.
 
             // Emit `NoncesInvalidated(signer, [nonce])`.
             mstore(0x00, 0x20)
@@ -236,7 +243,7 @@ contract MulticallerWithSigner {
             mstore(0x40, nonce)
             log2(0x00, 0x60, _NONCES_INVALIDATED_EVENT_SIGNATURE, signer)
 
-            /* -------------------- PERFORM AGGREGATE ------------------- */
+            /* ------------------- PERFORM AGGREGATE -------------------- */
 
             // Early return if no data.
             if iszero(data.length) {
@@ -352,50 +359,36 @@ contract MulticallerWithSigner {
         bytes calldata signature
     ) external {
         assembly {
-            // Store `INVALIDATE_NONCES_FOR_SIGNER_TYPEHASH`.
+            // Layout the fields of the struct hash.
             mstore(returndatasize(), INVALIDATE_NONCES_FOR_SIGNER_TYPEHASH)
             // Compute and store `keccak256(abi.encodePacked(nonces))`.
             calldatacopy(0x20, nonces.offset, shl(5, nonces.length))
             mstore(0x20, keccak256(0x20, shl(5, nonces.length)))
-            mstore(0x40, sload(or(shl(96, signer), 1))) // Store the `nonceSalt`.
-            mstore(0x40, keccak256(returndatasize(), 0x60)) // Store the struct hash.
-
-            // `keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)")`.
-            mstore(0x80, 0x8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f)
-            // `keccak256("MulticallerWithSigner")`.
-            mstore(0xa0, 0x301013e8a31863902646dc218ecd889c37491c2967a8104d5ff1cf42af0f9ea4)
-            // `keccak256("1")`.
-            mstore(0xc0, 0xc89efdaa54c0f20c7adf612882df0950f5a951637e0307cdcb4c672f298b8bc6)
+            mstore(0x40, sload(or(shl(96, signer), 1))) // Store the nonce salt.
+            mstore(0x40, keccak256(returndatasize(), 0x60)) // Compute and store the struct hash.
+            // Layout the fields of the domain separator.
+            mstore(0x80, _DOMAIN_TYPEHASH)
+            mstore(0xa0, _NAME_HASH)
+            mstore(0xc0, _VERSION_HASH)
             mstore(0xe0, chainid())
             mstore(0x100, address())
-
-            // Compute the digest.
+            mstore(0x20, keccak256(0x80, 0xa0)) // Compute and store the domain separator.
+            // Layout the fields of `ecrecover`.
             mstore(returndatasize(), 0x1901) // Store "\x19\x01".
-            mstore(0x20, keccak256(0x80, 0xa0)) // Store the domain separator.
-
-            // Recover the signer from the `digest` and `signature`.
-            mstore(returndatasize(), keccak256(0x1e, 0x42)) // `digest`.
+            mstore(returndatasize(), keccak256(0x1e, 0x42)) // Compute and store the digest.
             mstore(0x20, byte(returndatasize(), calldataload(add(signature.offset, 0x40)))) // `v`.
             calldatacopy(0x40, signature.offset, 0x40) // Copy `r` and `s`.
             pop(
                 staticcall(
                     gas(), // Amount of gas left for the transaction.
-                    and(
-                        // If the signature is exactly 65 bytes in length.
-                        eq(signature.length, 65),
-                        // If `s` in lower half order, such that the signature is not malleable.
-                        lt(
-                            mload(0x60),
-                            0x7fffffffffffffffffffffffffffffff5d576e7357a4501ddfe92f46681b20a1
-                        )
-                    ), // Address of `ecrecover`.
+                    and(eq(signature.length, 65), lt(mload(0x60), _S_THRES)), // `ecrecover`.
                     returndatasize(), // Start of input.
                     0x80, // Size of input.
                     returndatasize(), // Start of output.
                     0x20 // Size of output.
                 )
             )
-            // `returndatasize()` will be `0x20` upon success, and `0x00` otherwise.
+            // `returndatasize()` will be 32 upon success and 0 otherwise.
             if iszero(mul(returndatasize(), eq(mload(0x00), signer))) {
                 mstore(0x00, 0x8baa579f) // `InvalidSignature()`.
                 revert(0x1c, 0x04)
@@ -482,48 +475,33 @@ contract MulticallerWithSigner {
         assembly {
             let nonceSaltSlot := or(shl(96, signer), 1)
             let nonceSalt := sload(nonceSaltSlot)
-
-            // Store `INCREMENT_NONCE_SALT_FOR_SIGNER_TYPEHASH`.
+            // Layout the fields of the struct hash.
             mstore(returndatasize(), INCREMENT_NONCE_SALT_FOR_SIGNER_TYPEHASH)
-            mstore(0x20, nonceSalt) // Store the `nonceSalt`.
-            mstore(0x40, keccak256(returndatasize(), 0x40)) // Store the struct hash.
-
-            // `keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)")`.
-            mstore(0x80, 0x8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f)
-            // `keccak256("MulticallerWithSigner")`.
-            mstore(0xa0, 0x301013e8a31863902646dc218ecd889c37491c2967a8104d5ff1cf42af0f9ea4)
-            // `keccak256("1")`.
-            mstore(0xc0, 0xc89efdaa54c0f20c7adf612882df0950f5a951637e0307cdcb4c672f298b8bc6)
+            mstore(0x20, nonceSalt) // Store the nonce salt.
+            mstore(0x40, keccak256(returndatasize(), 0x40)) // Compute and store the struct hash.
+            // Layout the fields of the domain separator.
+            mstore(0x80, _DOMAIN_TYPEHASH)
+            mstore(0xa0, _NAME_HASH)
+            mstore(0xc0, _VERSION_HASH)
             mstore(0xe0, chainid())
             mstore(0x100, address())
-
-            // Compute the digest.
+            mstore(0x20, keccak256(0x80, 0xa0)) // Compute and store the domain separator.
+            // Layout the fields of `ecrecover`.
             mstore(returndatasize(), 0x1901) // Store "\x19\x01".
-            mstore(0x20, keccak256(0x80, 0xa0)) // Store the domain separator.
-
-            // Recover the signer from the `digest` and `signature`.
-            mstore(returndatasize(), keccak256(0x1e, 0x42)) // `digest`.
+            mstore(returndatasize(), keccak256(0x1e, 0x42)) // Compute and store the digest.
             mstore(0x20, byte(returndatasize(), calldataload(add(signature.offset, 0x40)))) // `v`.
             calldatacopy(0x40, signature.offset, 0x40) // Copy `r` and `s`.
             pop(
                 staticcall(
                     gas(), // Amount of gas left for the transaction.
-                    and(
-                        // If the signature is exactly 65 bytes in length.
-                        eq(signature.length, 65),
-                        // If `s` in lower half order, such that the signature is not malleable.
-                        lt(
-                            mload(0x60),
-                            0x7fffffffffffffffffffffffffffffff5d576e7357a4501ddfe92f46681b20a1
-                        )
-                    ), // Address of `ecrecover`.
+                    and(eq(signature.length, 65), lt(mload(0x60), _S_THRES)), // `ecrecover`.
                     returndatasize(), // Start of input.
                     0x80, // Size of input.
                     returndatasize(), // Start of output.
                     0x20 // Size of output.
                 )
             )
-            // `returndatasize()` will be `0x20` upon success, and `0x00` otherwise.
+            // `returndatasize()` will be 32 upon success and 0 otherwise.
             if iszero(mul(returndatasize(), eq(mload(0x00), signer))) {
                 mstore(0x00, 0x8baa579f) // `InvalidSignature()`.
                 revert(0x1c, 0x04)
