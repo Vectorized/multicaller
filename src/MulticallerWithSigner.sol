@@ -174,7 +174,8 @@ contract MulticallerWithSigner {
                 revert(0x1c, 0x04)
             }
 
-            // Multiply `data.length` by 0x20. This is the byte length of `targets`, `data`, values`.
+            // Multiply `data.length` by 0x20 to give the byte length of the `data` offsets array.
+            // This is the also the byte length of the `targets` array and `values` array.
             data.length := shl(5, data.length)
 
             /* -------------------- CHECK SIGNATURE --------------------- */
@@ -448,7 +449,7 @@ contract MulticallerWithSigner {
     function incrementNonceSalt() external returns (uint256) {
         assembly {
             let nonceSaltSlot := or(shl(96, caller()), 1)
-            // Increment by some psuedorandom amount from [1..4294967296].
+            // Increment by some pseudorandom amount from [1..4294967296].
             let newNonceSalt :=
                 add(add(1, shr(224, blockhash(sub(number(), 1)))), sload(nonceSaltSlot))
             sstore(nonceSaltSlot, newNonceSalt)
@@ -507,7 +508,7 @@ contract MulticallerWithSigner {
                 revert(0x1c, 0x04)
             }
 
-            // Increment by some psuedorandom amount from [1..4294967296].
+            // Increment by some pseudorandom amount from [1..4294967296].
             let newNonceSalt := add(add(1, shr(224, blockhash(sub(number(), 1)))), nonceSalt)
             sstore(nonceSaltSlot, newNonceSalt)
             // Emit `NonceSaltIncremented(msg.sender, newNonceSalt)`.
