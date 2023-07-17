@@ -14,6 +14,8 @@ function aggregate(
 ```  
 Aggregates multiple calls in a single transaction.
 
+This method does NOT refund any excess ETH in the contract.
+
 Returns an array of the returndata from each call.
 
 ## MulticallerWithSender
@@ -32,7 +34,9 @@ Aggregates multiple calls in a single transaction.
 
 This method will set the multicaller sender to the `msg.sender` temporarily for the span of its execution.
 
-This method does not support reentrancy.
+This method does NOT support reentrancy.
+
+This method does NOT refund any excess ETH in the contract.
 
 Returns an array of the returndata from each call.
 
@@ -70,7 +74,7 @@ If you need them in your code, please copy and paste them.
 
 #### `_AGGREGATE_WITH_SIGNER_TYPEHASH`
 ```solidity
-bytes32 public constant _AGGREGATE_WITH_SIGNER_TYPEHASH =
+bytes32 private constant _AGGREGATE_WITH_SIGNER_TYPEHASH =
     0xc4d2f044d99707794280032fc14879a220a3f7dc766d75100809624f91d69e97;
 ```
 
@@ -78,9 +82,16 @@ For EIP-712 signature digest calculation for the `aggregateWithSigner` function.
 
 `keccak256("AggregateWithSigner(string message,address[] targets,bytes[] data,uint256[] values,uint256 nonce,uint256 nonceSalt)")`.
 
+- `message`:   A human readable message on what the signature is about.
+- `targets`:   An array of addresses to call.
+- `data`:      An array of calldata to forward to the targets.
+- `values`:    How much ETH to forward to each target.
+- `nonce`:     The nonce for the signature.
+- `nonceSalt`: The current nonce salt of the signer.
+
 #### `_INVALIDATE_NONCES_FOR_SIGNER_TYPEHASH`
 ```solidity
-bytes32 public constant _INVALIDATE_NONCES_FOR_SIGNER_TYPEHASH =
+bytes32 private constant _INVALIDATE_NONCES_FOR_SIGNER_TYPEHASH =
     0xe75b4aefef1358e66ac7ed2f180022e0a7f661dcd2781630ce58e05bb8bdb1c1;
 ```
 
@@ -88,9 +99,12 @@ For EIP-712 signature digest calculation for the `invalidateNoncesForSigner` fun
 
 `keccak256("InvalidateNoncesForSigner(uint256[] nonces,uint256 nonceSalt)")`.
 
+- `nonces`:    The array of nonces for the signer.
+- `nonceSalt`: The current nonce salt of the signer.
+
 #### `_INCREMENT_NONCE_SALT_FOR_SIGNER_TYPEHASH`
 ```solidity
-bytes32 public constant _INCREMENT_NONCE_SALT_FOR_SIGNER_TYPEHASH =
+bytes32 private constant _INCREMENT_NONCE_SALT_FOR_SIGNER_TYPEHASH =
     0x898da98c106c91ce6f05405740b0ed23b5c4dc847a0dd1996fb93189d8310bef;
 ```
 
@@ -98,9 +112,11 @@ For EIP-712 signature digest calculation for the `incrementNonceSaltForSigner` f
 
 `keccak256("IncrementNonceSaltForSigner(uint256 nonceSalt)")`.
 
+- `nonceSalt`: The current nonce salt of the signer.
+
 #### `_DOMAIN_TYPEHASH`
 ```solidity
-bytes32 public constant _DOMAIN_TYPEHASH =
+bytes32 private constant _DOMAIN_TYPEHASH =
     0x8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f;
 ```
 
@@ -110,7 +126,7 @@ For EIP-712 signature digest calculation.
 
 #### `_NAME_HASH`
 ```solidity
-bytes32 public constant _NAME_HASH =
+bytes32 private constant _NAME_HASH =
     0x301013e8a31863902646dc218ecd889c37491c2967a8104d5ff1cf42af0f9ea4;
 ```
 
@@ -120,7 +136,7 @@ For EIP-712 signature digest calculation.
 
 #### `_VERSION_HASH`
 ```solidity
-bytes32 public constant _VERSION_HASH =
+bytes32 private constant _VERSION_HASH =
     0xc89efdaa54c0f20c7adf612882df0950f5a951637e0307cdcb4c672f298b8bc6;
 ```
 
@@ -147,7 +163,9 @@ Aggregates multiple calls in a single transaction.
 
 This method will set the multicaller signer to the `signer` temporarily for the span of its execution.
 
-This method does not support reentrancy.
+This method does NOT support reentrancy.
+
+This method does NOT refund any excess ETH in the contract.
 
 Emits a `NoncesInvalidated(signer, [nonce])` event.
 
@@ -243,13 +261,13 @@ function eip712Domain()
 
 Returns the EIP-712 domain information, as specified in [EIP-5267](https://eips.ethereum.org/EIPS/eip-5267).
 
-- fields            `hex"0f"` (`0b01111`).
-- name              `"MulticallerWithSender"`.
-- version           `"1"`.
-- chainId           The chain ID which this contract is on.
-- verifyingContract `address(this)`, the address of this contract.
-- salt              `bytes32(0)` (not used).
-- extensions        `[]` (not used).
+- `fields`:            `hex"0f"` (`0b01111`).
+- `name`:              `"MulticallerWithSender"`.
+- `version`:           `"1"`.
+- `chainId`:           The chain ID which this contract is on.
+- `verifyingContract`: `address(this)`, the address of this contract.
+- `salt`:              `bytes32(0)` (not used).
+- `extensions`:        `[]` (not used).
 
 #### `receive`
 ```solidity
@@ -268,21 +286,24 @@ Library to read the multicaller contracts.
 
 #### `MULTICALLER`
 ```solidity
-address internal constant MULTICALLER
+address internal constant MULTICALLER =
+    0x000000000088228fCF7b8af41Faf3955bD0B3A41;
 ```
 
 The address of the multicaller contract.
 
 #### `MULTICALLER_WITH_SENDER`
 ```solidity
-address internal constant MULTICALLER_WITH_SENDER
+address internal constant MULTICALLER_WITH_SENDER =
+    0x00000000002Fd5Aeb385D324B580FCa7c83823A0;
 ```
 
 The address of the multicaller with sender contract.
 
 #### `MULTICALLER_WITH_SIGNER`
 ```solidity
-address internal constant MULTICALLER_WITH_SIGNER
+address internal constant MULTICALLER_WITH_SIGNER =
+    0x00000000000016b8cFCbB6F602eCcFF86361ad5E;
 ```
 
 The address of the multicaller with signer contract.
