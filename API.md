@@ -62,6 +62,73 @@ event NonceSaltIncremented(address indexed signer, uint256 newNonceSalt)
 
 Emitted when the nonce salt of `signer` is incremented.
 
+### Constants
+
+These EIP-712 constants are made private to save function dispatch gas.  
+
+If you need them in your code, please copy and paste them.
+
+#### `_AGGREGATE_WITH_SIGNER_TYPEHASH`
+```solidity
+bytes32 public constant _AGGREGATE_WITH_SIGNER_TYPEHASH =
+    0xc4d2f044d99707794280032fc14879a220a3f7dc766d75100809624f91d69e97;
+```
+
+For EIP-712 signature digest calculation for the `aggregateWithSigner` function.
+
+`keccak256("AggregateWithSigner(string message,address[] targets,bytes[] data,uint256[] values,uint256 nonce,uint256 nonceSalt)")`.
+
+#### `_INVALIDATE_NONCES_FOR_SIGNER_TYPEHASH`
+```solidity
+bytes32 public constant _INVALIDATE_NONCES_FOR_SIGNER_TYPEHASH =
+    0xe75b4aefef1358e66ac7ed2f180022e0a7f661dcd2781630ce58e05bb8bdb1c1;
+```
+
+For EIP-712 signature digest calculation for the `invalidateNoncesForSigner` function.
+
+`keccak256("InvalidateNoncesForSigner(uint256[] nonces,uint256 nonceSalt)")`.
+
+#### `_INCREMENT_NONCE_SALT_FOR_SIGNER_TYPEHASH`
+```solidity
+bytes32 public constant _INCREMENT_NONCE_SALT_FOR_SIGNER_TYPEHASH =
+    0x898da98c106c91ce6f05405740b0ed23b5c4dc847a0dd1996fb93189d8310bef;
+```
+
+For EIP-712 signature digest calculation for the `incrementNonceSaltForSigner` function.
+
+`keccak256("IncrementNonceSaltForSigner(uint256 nonceSalt)")`.
+
+#### `_DOMAIN_TYPEHASH`
+```solidity
+bytes32 public constant _DOMAIN_TYPEHASH =
+    0x8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f;
+```
+
+For EIP-712 signature digest calculation.
+
+`keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)")`.
+
+#### `_NAME_HASH`
+```solidity
+bytes32 public constant _NAME_HASH =
+    0x301013e8a31863902646dc218ecd889c37491c2967a8104d5ff1cf42af0f9ea4;
+```
+
+For EIP-712 signature digest calculation.
+
+`keccak256("MulticallerWithSigner")`.
+
+#### `_VERSION_HASH`
+```solidity
+bytes32 public constant _VERSION_HASH =
+    0xc89efdaa54c0f20c7adf612882df0950f5a951637e0307cdcb4c672f298b8bc6;
+```
+
+For EIP-712 signature digest calculation.
+
+`keccak256("1")`.
+
+
 ### Functions
 
 #### `aggregateWithSigner`
