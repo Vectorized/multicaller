@@ -62,35 +62,6 @@ event NonceSaltIncremented(address indexed signer, uint256 newNonceSalt)
 
 Emitted when the nonce salt of `signer` is incremented.
 
-### Constants
-
-#### `AGGREGATE_WITH_SIGNER_TYPEHASH`
-```solidity
-bytes32 public constant AGGREGATE_WITH_SIGNER_TYPEHASH
-```
-
-For EIP-712 signature digest calculation for the `aggregateWithSigner` function.
-
-`keccak256("AggregateWithSigner(string message,address[] targets,bytes[] data,uint256[] values,uint256 nonce,uint256 nonceSalt)")`.
-
-#### `INVALIDATE_NONCES_FOR_SIGNER_TYPEHASH`
-```solidity
-bytes32 public constant INVALIDATE_NONCES_FOR_SIGNER_TYPEHASH
-```
-
-For EIP-712 signature digest calculation for the `invalidateNoncesForSigner` function.
-
-`keccak256("InvalidateNoncesForSigner(uint256[] nonces,uint256 nonceSalt)")`.
-
-#### `INCREMENT_NONCE_SALT_FOR_SIGNER_TYPEHASH`
-```solidity
-bytes32 public constant INCREMENT_NONCE_SALT_FOR_SIGNER_TYPEHASH
-```
-
-For EIP-712 signature digest calculation for the `incrementNonceSaltForSigner` function.
-
-`keccak256("IncrementNonceSaltForSigner(uint256 nonceSalt)")`.
-
 ### Functions
 
 #### `aggregateWithSigner`
