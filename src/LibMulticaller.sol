@@ -18,22 +18,32 @@ library LibMulticaller {
     address internal constant MULTICALLER_WITH_SENDER = 0x00000000002Fd5Aeb385D324B580FCa7c83823A0;
 
     /**
+     * @dev The address of the multicaller with signer contract.
+     */
+    address internal constant MULTICALLER_WITH_SIGNER = 0x000000000000a89360A6a4786b9B33266F208AF4;
+
+    /**
      * @dev Returns the caller of `aggregateWithSender` on `MULTICALLER_WITH_SENDER`.
      */
     function multicallerSender() internal view returns (address result) {
         /// @solidity memory-safe-assembly
         assembly {
-            if iszero(
-                staticcall(
-                    gas(), // Remaining gas.
-                    MULTICALLER_WITH_SENDER, // The multicaller.
-                    0x00, // Start of calldata in memory.
-                    0x00, // Length of calldata.
-                    0x00, // Start of returndata in memory.
-                    0x20 // Length of returndata.
-                )
-            ) { revert(0, 0) } // For better gas estimation.
+            if iszero(staticcall(gas(), MULTICALLER_WITH_SENDER, 0x00, 0x00, 0x00, 0x20)) {
+                revert(0, 0) // For better gas estimation.
+            }
+            result := mul(mload(0x00), eq(returndatasize(), 0x20))
+        }
+    }
 
+    /**
+     * @dev Returns the signer of `aggregateWithSigner` on `MULTICALLER_WITH_SIGNER`.
+     */
+    function multicallerSigner() internal view returns (address result) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            if iszero(staticcall(gas(), MULTICALLER_WITH_SIGNER, 0x00, 0x00, 0x00, 0x20)) {
+                revert(0, 0) // For better gas estimation.
+            }
             result := mul(mload(0x00), eq(returndatasize(), 0x20))
         }
     }
@@ -46,20 +56,47 @@ library LibMulticaller {
     function sender() internal view returns (address result) {
         /// @solidity memory-safe-assembly
         assembly {
-            result := caller()
-            if eq(result, MULTICALLER_WITH_SENDER) {
-                if iszero(
-                    staticcall(
-                        gas(), // Remaining gas.
-                        MULTICALLER_WITH_SENDER, // The multicaller with sender.
-                        0x00, // Start of calldata in memory.
-                        0x00, // Length of calldata.
-                        0x00, // Start of returndata in memory.
-                        0x20 // Length of returndata.
-                    )
-                ) { revert(0, 0) } // For better gas estimation.
+            for {} 1 {} {
+                if eq(caller(), MULTICALLER_WITH_SENDER) {
+                    if iszero(staticcall(gas(), MULTICALLER_WITH_SENDER, 0x00, 0x00, 0x00, 0x20)) {
+                        revert(0, 0) // For better gas estimation.
+                    }
+                    result := mload(0x00)
+                    break
+                }
+                result := caller()
+                break
+            }
+        }
+    }
 
-                result := mul(mload(0x00), eq(returndatasize(), 0x20))
+    /**
+     * @dev Returns the caller of `aggregateWithSender` on `MULTICALLER_WITH_SENDER`,
+     *      if the current context's `msg.sender` is `MULTICALLER_WITH_SENDER`.
+     *      Returns the signer of `aggregateWithSigner` on `MULTICALLER_WITH_SIGNER`,
+     *      if the current context's `msg.sender` is `MULTICALLER_WITH_SIGNER`.
+     *      Otherwise, returns `msg.sender`.
+     */
+    function senderOrSigner() internal view returns (address result) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            for {} 1 {} {
+                if eq(caller(), MULTICALLER_WITH_SENDER) {
+                    if iszero(staticcall(gas(), MULTICALLER_WITH_SENDER, 0x00, 0x00, 0x00, 0x20)) {
+                        revert(0, 0) // For better gas estimation.
+                    }
+                    result := mload(0x00)
+                    break
+                }
+                if eq(caller(), MULTICALLER_WITH_SIGNER) {
+                    if iszero(staticcall(gas(), MULTICALLER_WITH_SIGNER, 0x00, 0x00, 0x00, 0x20)) {
+                        revert(0, 0) // For better gas estimation.
+                    }
+                    result := mload(0x00)
+                    break
+                }
+                result := caller()
+                break
             }
         }
     }
