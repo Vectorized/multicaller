@@ -39,22 +39,24 @@ contract Multicaller {
         address refundTo
     ) external payable returns (bytes[] memory) {
         assembly {
+            // Force transfers all the remaining ETH in the contract to `to`,
+            // with a gas stipend of 100000, which should be enough for most use cases.
+            // If sending via a regular call fails, force sends the ETH by
+            // creating a temporary contract which uses `SELFDESTRUCT` to force send the ETH.
             function forceSafeRefundETH(to) {
-                // If `to` is `address(1)` replace it with the `msg.sender`.
+                if iszero(selfbalance()) { leave } // If there's no remaining ETH, leave.
+                // If `to` is `address(1)`, replace it with the `msg.sender`.
                 to := xor(to, mul(eq(to, 1), xor(to, caller())))
-                // If there is remaining ETH.
-                if selfbalance() {
-                    // Transfer the ETH and check if it succeeded or not.
-                    if iszero(call(100000, to, selfbalance(), 0x00, 0x00, 0x00, 0x00)) {
-                        mstore(0x00, to) // Store the address in scratch space.
-                        mstore8(0x0b, 0x73) // Opcode `PUSH20`.
-                        mstore8(0x20, 0xff) // Opcode `SELFDESTRUCT`.
-                        // We can directly use `SELFDESTRUCT` in the contract creation.
-                        // Compatible with `SENDALL`: https://eips.ethereum.org/EIPS/eip-4758
-                        if iszero(create(selfbalance(), 0x0b, 0x16)) {
-                            // Coerce gas estimation to provide enough gas for the `create` above.
-                            if iszero(gt(gas(), 1000000)) { revert(0x00, 0x00) }
-                        }
+                // Transfer the ETH and check if it succeeded or not.
+                if iszero(call(100000, to, selfbalance(), 0x00, 0x00, 0x00, 0x00)) {
+                    mstore(0x00, to) // Store the address in scratch space.
+                    mstore8(0x0b, 0x73) // Opcode `PUSH20`.
+                    mstore8(0x20, 0xff) // Opcode `SELFDESTRUCT`.
+                    // We can directly use `SELFDESTRUCT` in the contract creation.
+                    // Compatible with `SENDALL`: https://eips.ethereum.org/EIPS/eip-4758
+                    if iszero(create(selfbalance(), 0x0b, 0x16)) {
+                        // Coerce gas estimation to provide enough gas for the `create` above.
+                        if iszero(gt(gas(), 1000000)) { revert(0x00, 0x00) }
                     }
                 }
             }
@@ -157,7 +159,7 @@ contract Multicaller {
             if eq(shr(224, s), 0x66e0daa0) {
                 mstore(returndatasize(), not(s))
                 let o := 4
-                for { let i := 4 } lt(i, calldatasize()) {} {
+                for { let i := o } lt(i, calldatasize()) {} {
                     let c := byte(returndatasize(), calldataload(i))
                     i := add(i, 1)
                     if iszero(c) {
