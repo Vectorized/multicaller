@@ -315,6 +315,35 @@ contract MulticallerTest is TestPlus {
         assertEq(encodedResults, abi.encode(results));
     }
 
+    function testMulticallerCdFallback(string memory s) public {
+        address[] memory targets = new address[](2);
+        targets[0] = address(targetA);
+        targets[1] = address(targetA);
+        bytes[] memory data = new bytes[](2);
+        data[0] = abi.encodeWithSelector(MulticallerTarget.returnsString.selector, s);
+        data[1] = abi.encodeWithSelector(MulticallerTarget.returnsString.selector, s);
+        uint256[] memory values = new uint256[](2);
+
+        bytes[] memory results = multicaller.aggregate(targets, data, values, address(0));
+
+        (bool success, bytes memory encodedResults) = address(multicaller).call(
+            _cdCompress(
+                abi.encodeWithSelector(
+                    Multicaller.aggregate.selector, targets, data, values, address(0)
+                )
+            )
+        );
+        assertTrue(success);
+        assertEq(encodedResults, abi.encode(results));
+
+        uint256 value = _bound(_random(), 0, 1 ether);
+        vm.deal(address(this), value);
+        (success, encodedResults) = address(multicaller).call{value: value}("");
+        assertTrue(success);
+        assertEq(encodedResults.length, 0);
+        assertEq(address(multicaller).balance, value);
+    }
+
     function testMulticallerReturnDataIsProperlyEncoded() public {
         testMulticallerReturnDataIsProperlyEncoded(0, 1, 2, 3);
     }

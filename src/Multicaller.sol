@@ -39,13 +39,13 @@ contract Multicaller {
         address refundTo
     ) external payable returns (bytes[] memory) {
         assembly {
-            function forceSafeTransferETH(to) {
+            function forceSafeRefundETH(to) {
                 // If `to` is `address(1)` replace it with the `msg.sender`.
                 to := xor(to, mul(eq(to, 1), xor(to, caller())))
                 // If there is remaining ETH.
                 if selfbalance() {
                     // Transfer the ETH and check if it succeeded or not.
-                    if iszero(call(300000, to, selfbalance(), 0x00, 0x00, 0x00, 0x00)) {
+                    if iszero(call(100000, to, selfbalance(), 0x00, 0x00, 0x00, 0x00)) {
                         mstore(0x00, to) // Store the address in scratch space.
                         mstore8(0x0b, 0x73) // Opcode `PUSH20`.
                         mstore8(0x20, 0xff) // Opcode `SELFDESTRUCT`.
@@ -68,7 +68,7 @@ contract Multicaller {
 
             // Early return if no data.
             if iszero(data.length) {
-                if refundTo { forceSafeTransferETH(refundTo) }
+                if refundTo { forceSafeRefundETH(refundTo) }
                 mstore(0x00, 0x20) // Store the memory offset of the `results`.
                 mstore(0x20, targets.length) // Store `targets.length` into `results`.
                 return(0x00, 0x40)
@@ -127,7 +127,7 @@ contract Multicaller {
                 resultsOffset := and(add(add(resultsOffset, returndatasize()), 0x3f), not(0x1f))
                 if eq(results, end) { break }
             }
-            if refundTo { forceSafeTransferETH(refundTo) }
+            if refundTo { forceSafeRefundETH(refundTo) }
             mstore(0x00, 0x20) // Store the memory offset of the `results`.
             mstore(0x20, targets.length) // Store `targets.length` into `results`.
             // Direct return.
@@ -136,39 +136,44 @@ contract Multicaller {
     }
 
     /**
-     * @dev To allow the contract to receive ETH.
+     * @dev For receiving ETH.
      *      Called instead of `fallback()` when `msg.data` is empty.
      */
     receive() external payable {}
 
     /**
-     * @dev For calldata compression.
+     * @dev Uncompresses the calldata and performs a delegatecall to itself.
      *      See: https://github.com/vectorized/solady/blob/main/src/utils/LibZip.sol
      */
     fallback() external payable {
         assembly {
-            let o := returndatasize()
-            let f := not(3) // For negating the first 4 bytes.
-            for { let i := returndatasize() } lt(i, calldatasize()) {} {
-                let c := byte(returndatasize(), xor(add(i, f), calldataload(i)))
-                i := add(i, 1)
-                if iszero(c) {
-                    let d := byte(returndatasize(), xor(add(i, f), calldataload(i)))
+            // If the calldata starts with the bitwise negation of
+            // `bytes4(keccak256("aggregate(address[],bytes[],uint256[],address)"))`.
+            let s := calldataload(returndatasize())
+            if eq(shr(224, s), 0x66e0daa0) {
+                mstore(returndatasize(), not(s))
+                let o := 4
+                for { let i := 4 } lt(i, calldatasize()) {} {
+                    let c := byte(returndatasize(), calldataload(i))
                     i := add(i, 1)
-                    // Fill with either 0xff or 0x00.
-                    mstore(o, not(returndatasize()))
-                    if iszero(gt(d, 0x7f)) { codecopy(o, codesize(), add(d, 1)) }
-                    o := add(o, add(and(d, 0x7f), 1))
-                    continue
+                    if iszero(c) {
+                        let d := byte(returndatasize(), calldataload(i))
+                        i := add(i, 1)
+                        // Fill with either 0xff or 0x00.
+                        mstore(o, not(returndatasize()))
+                        if iszero(gt(d, 0x7f)) { codecopy(o, codesize(), add(d, 1)) }
+                        o := add(o, add(and(d, 0x7f), 1))
+                        continue
+                    }
+                    mstore8(o, c)
+                    o := add(o, 1)
                 }
-                mstore8(o, c)
-                o := add(o, 1)
+                let success := delegatecall(gas(), address(), 0x00, o, 0x00, 0x00)
+                returndatacopy(0x00, 0x00, returndatasize())
+                if iszero(success) { revert(0x00, returndatasize()) }
+                return(0x00, returndatasize())
             }
-            let success :=
-                delegatecall(gas(), address(), returndatasize(), o, returndatasize(), returndatasize())
-            returndatacopy(0x00, 0x00, returndatasize())
-            if iszero(success) { revert(0x00, returndatasize()) }
-            return(0x00, returndatasize())
+            revert(returndatasize(), returndatasize())
         }
     }
 }
