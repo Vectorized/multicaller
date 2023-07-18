@@ -176,6 +176,9 @@ contract MulticallerTest is TestPlus {
             LibMulticaller.MULTICALLER_WITH_SIGNER, MULTICALLER_WITH_SIGNER_CREATE2_DEPLOYED_ADDRESS
         );
 
+        vm.etch(LibMulticaller.MULTICALLER, address(new Multicaller()).code);
+        multicaller = Multicaller(payable(LibMulticaller.MULTICALLER));
+
         // vm.etch(LibMulticaller.MULTICALLER_WITH_SIGNER, address(new MulticallerWithSigner()).code);
         // vm.store(LibMulticaller.MULTICALLER_WITH_SIGNER, 0, bytes32(uint256(1 << 160)));
         // multicallerWithSigner =
@@ -191,6 +194,27 @@ contract MulticallerTest is TestPlus {
         fallbackTargetB = new FallbackTarget();
     }
 
+    function testMulticallerRefund(uint256) public {
+        uint256 payment = _bound(_random(), 0, type(uint128).max);
+
+        vm.deal(address(this), type(uint160).max);
+
+        address[] memory targets = new address[](1);
+        targets[0] = address(targetA);
+        bytes[] memory data = new bytes[](1);
+        data[0] = abi.encodeWithSelector(MulticallerTarget.pay.selector);
+        uint256[] memory values = new uint256[](1);
+        values[0] = payment;
+
+        multicaller.aggregate{value: address(this).balance}(targets, data, values, address(1));
+        assertEq(address(this).balance, type(uint160).max - payment);
+
+        uint256 excess = _bound(_random(), 0, type(uint128).max);
+        uint256 value = payment + excess;
+        multicaller.aggregate{value: value}(targets, data, values, address(fallbackTargetA));
+        assertEq(address(fallbackTargetA).balance, excess);
+    }
+
     function testMulticallerRevertWithMessage(string memory revertMessage) public {
         address[] memory targets = new address[](1);
         targets[0] = address(targetA);
@@ -198,7 +222,7 @@ contract MulticallerTest is TestPlus {
         data[0] =
             abi.encodeWithSelector(MulticallerTarget.revertsWithString.selector, revertMessage);
         vm.expectRevert(bytes(revertMessage));
-        multicaller.aggregate(targets, data, new uint256[](1));
+        multicaller.aggregate(targets, data, new uint256[](1), address(0));
         vm.expectRevert(bytes(revertMessage));
         multicallerWithSender.aggregateWithSender(targets, data, new uint256[](1));
     }
@@ -213,7 +237,7 @@ contract MulticallerTest is TestPlus {
         bytes[] memory data = new bytes[](1);
         data[0] = abi.encodeWithSelector(MulticallerTarget.revertsWithCustomError.selector);
         vm.expectRevert(MulticallerTarget.CustomError.selector);
-        multicaller.aggregate(targets, data, new uint256[](1));
+        multicaller.aggregate(targets, data, new uint256[](1), address(0));
         vm.expectRevert(MulticallerTarget.CustomError.selector);
         multicallerWithSender.aggregateWithSender(targets, data, new uint256[](1));
     }
@@ -224,7 +248,7 @@ contract MulticallerTest is TestPlus {
         bytes[] memory data = new bytes[](1);
         data[0] = abi.encodeWithSelector(MulticallerTarget.revertsWithNothing.selector);
         vm.expectRevert();
-        multicaller.aggregate(targets, data, new uint256[](1));
+        multicaller.aggregate(targets, data, new uint256[](1), address(0));
         vm.expectRevert();
         multicallerWithSender.aggregateWithSender(targets, data, new uint256[](1));
     }
@@ -241,7 +265,7 @@ contract MulticallerTest is TestPlus {
         bytes[] memory data = new bytes[](2);
         data[0] = abi.encodeWithSelector(MulticallerTarget.returnsTuple.selector, a0, b0);
         data[1] = abi.encodeWithSelector(MulticallerTarget.returnsTuple.selector, a1, b1);
-        bytes[] memory results = multicaller.aggregate(targets, data, new uint256[](2));
+        bytes[] memory results = multicaller.aggregate(targets, data, new uint256[](2), address(0));
         MulticallerTarget.Tuple memory t0 = abi.decode(results[0], (MulticallerTarget.Tuple));
         MulticallerTarget.Tuple memory t1 = abi.decode(results[1], (MulticallerTarget.Tuple));
         assertEq(t0.a, a0);
@@ -270,7 +294,7 @@ contract MulticallerTest is TestPlus {
             string memory s = c == 0 ? s0 : s1;
             data[i] = abi.encodeWithSelector(MulticallerTarget.returnsString.selector, s);
         }
-        bytes[] memory results = multicaller.aggregate(targets, data, new uint256[](n));
+        bytes[] memory results = multicaller.aggregate(targets, data, new uint256[](n), address(0));
         for (uint256 i; i != n; ++i) {
             string memory s = choices[i] == 0 ? s0 : s1;
             assertEq(abi.decode(results[i], (string)), s);
@@ -279,6 +303,16 @@ contract MulticallerTest is TestPlus {
             abi.encode(multicallerWithSender.aggregateWithSender(targets, data, new uint256[](n))),
             abi.encode(results)
         );
+
+        (bool success, bytes memory encodedResults) = address(multicaller).call(
+            _cdCompress(
+                abi.encodeWithSelector(
+                    Multicaller.aggregate.selector, targets, data, new uint256[](n), address(0)
+                )
+            )
+        );
+        assertTrue(success);
+        assertEq(encodedResults, abi.encode(results));
     }
 
     function testMulticallerReturnDataIsProperlyEncoded() public {
@@ -288,7 +322,7 @@ contract MulticallerTest is TestPlus {
     function testMulticallerWithNoData() public {
         address[] memory targets = new address[](0);
         bytes[] memory data = new bytes[](0);
-        assertEq(multicaller.aggregate(targets, data, new uint256[](0)).length, 0);
+        assertEq(multicaller.aggregate(targets, data, new uint256[](0), address(0)).length, 0);
         assertEq(
             multicallerWithSender.aggregateWithSender(targets, data, new uint256[](0)).length, 0
         );
@@ -310,7 +344,7 @@ contract MulticallerTest is TestPlus {
         values[1] = 0;
         values[2] = 0;
         values[3] = 3;
-        multicaller.aggregate{value: 4}(targets, data, values);
+        multicaller.aggregate{value: 4}(targets, data, values, address(0));
         multicallerWithSender.aggregateWithSender{value: 4}(targets, data, values);
         assertEq(targetA.paid(), 2);
         assertEq(targetB.paid(), 6);
@@ -321,7 +355,7 @@ contract MulticallerTest is TestPlus {
         targets[3] = address(targetA);
         values[0] = 0;
         values[3] = 5;
-        multicaller.aggregate{value: 5}(targets, data, values);
+        multicaller.aggregate{value: 5}(targets, data, values, address(0));
         multicallerWithSender.aggregateWithSender{value: 5}(targets, data, values);
         assertEq(targetA.paid(), 12);
         assertEq(targetB.paid(), 6);
@@ -332,7 +366,7 @@ contract MulticallerTest is TestPlus {
         data[0] = abi.encodeWithSelector(MulticallerTarget.pay.selector);
         values = new uint256[](1);
         values[0] = 3;
-        multicaller.aggregate{value: 3}(targets, data, values);
+        multicaller.aggregate{value: 3}(targets, data, values, address(0));
         multicallerWithSender.aggregateWithSender{value: 3}(targets, data, values);
         assertEq(targetA.paid(), 18);
     }
@@ -344,7 +378,7 @@ contract MulticallerTest is TestPlus {
         bytes[] memory data = new bytes[](2);
         data[0] = abi.encodeWithSelector(MulticallerTarget.name.selector);
         data[1] = abi.encodeWithSelector(MulticallerTarget.name.selector);
-        bytes[] memory results = multicaller.aggregate(targets, data, new uint256[](2));
+        bytes[] memory results = multicaller.aggregate(targets, data, new uint256[](2), address(0));
         assertEq(abi.decode(results[0], (string)), "A");
         assertEq(abi.decode(results[1], (string)), "B");
         assertEq(
@@ -844,6 +878,47 @@ contract MulticallerTest is TestPlus {
             if call(gas(), sload(multicallerWithSigner.slot), 0, add(m, 0x1c), 0x80, 0x00, 0x00) {
                 revert(0x00, 0x00)
             }
+        }
+    }
+
+    function _cdCompress(bytes memory data) internal pure returns (bytes memory result) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            function rle(v_, o_, d_) -> _o, _d {
+                mstore(o_, shl(240, or(and(0xff, add(d_, 0xff)), and(0x80, v_))))
+                _o := add(o_, 2)
+            }
+            result := mload(0x40)
+            let o := add(result, 0x20)
+            let z := 0 // Number of consecutive 0x00.
+            let y := 0 // Number of consecutive 0xff.
+            for { let end := add(data, mload(data)) } iszero(eq(data, end)) {} {
+                data := add(data, 1)
+                let c := byte(31, mload(data))
+                if iszero(c) {
+                    if y { o, y := rle(0xff, o, y) }
+                    z := add(z, 1)
+                    if eq(z, 0x80) { o, z := rle(0x00, o, 0x80) }
+                    continue
+                }
+                if eq(c, 0xff) {
+                    if z { o, z := rle(0x00, o, z) }
+                    y := add(y, 1)
+                    if eq(y, 0x20) { o, y := rle(0xff, o, 0x20) }
+                    continue
+                }
+                if y { o, y := rle(0xff, o, y) }
+                if z { o, z := rle(0x00, o, z) }
+                mstore8(o, c)
+                o := add(o, 1)
+            }
+            if y { o, y := rle(0xff, o, y) }
+            if z { o, z := rle(0x00, o, z) }
+            // Bitwise negate the first 4 bytes.
+            mstore(add(result, 4), not(mload(add(result, 4))))
+            mstore(result, sub(o, add(result, 0x20))) // Store the length.
+            mstore(o, 0) // Zeroize the slot after the string.
+            mstore(0x40, add(o, 0x20)) // Allocate the memory.
         }
     }
 }
