@@ -38,8 +38,8 @@ fallback() external payable
 
 Uncompresses the calldata and performs a delegatecall to itself.
 
-See: https://github.com/vectorized/solady/blob/main/src/utils/LibZip.sol 
-for the accompanying library to compress the calldata.
+Accompanying JavaScript library to compress the calldata:  
+https://github.com/vectorized/solady/blob/main/js/solady.js (`LibZip.cdCompress`)
 
 ## MulticallerWithSender
 
