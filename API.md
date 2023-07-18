@@ -27,7 +27,9 @@ Returns an array of the returndata from each call.
 receive() external payable
 ```
 
-For receiving ETH. Does and returns nothing.
+For receiving ETH.
+
+Does nothing and returns nothing.
 
 Will be called instead of `fallback()` when `msg.data` is empty.
 
@@ -39,7 +41,8 @@ fallback() external payable
 Uncompresses the calldata and performs a delegatecall to itself.
 
 Accompanying JavaScript library to compress the calldata:  
-https://github.com/vectorized/solady/blob/main/js/solady.js (`LibZip.cdCompress`)
+https://github.com/vectorized/solady/blob/main/js/solady.js  
+(See: `LibZip.cdCompress`)
 
 ## MulticallerWithSender
 

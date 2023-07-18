@@ -137,13 +137,17 @@ contract Multicaller {
 
     /**
      * @dev For receiving ETH.
+     *      Does nothing and returns nothing.
      *      Called instead of `fallback()` when `msg.data` is empty.
      */
     receive() external payable {}
 
     /**
      * @dev Uncompresses the calldata and performs a delegatecall to itself.
-     *      See: https://github.com/vectorized/solady/blob/main/src/utils/LibZip.sol
+     *
+     *      Accompanying JavaScript library to compress the calldata:
+     *      https://github.com/vectorized/solady/blob/main/js/solady.js
+     *      (See: `LibZip.cdCompress`)
      */
     fallback() external payable {
         assembly {
