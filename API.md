@@ -9,14 +9,40 @@
 function aggregate(
     address[] calldata targets,
     bytes[] calldata data,
-    uint256[] calldata values
+    uint256[] calldata values,
+    address refundTo
 ) external payable returns (bytes[] memory)
 ```  
 Aggregates multiple calls in a single transaction.
 
-This method does NOT refund any excess ETH in the contract.
+Remaining ETH in the contract after the calls can be refunded:
+- If `refundTo` is `address(0)`, remaining ETH will NOT be refunded.
+- If `refundTo` is `address(1)`, remaining ETH will be refunded to `msg.sender`.
+- If `refundTo` is anything else, remaining ETH will be refunded to `refundTo`.
 
 Returns an array of the returndata from each call.
+
+#### `receive`
+```solidity
+receive() external payable
+```
+
+For receiving ETH.
+
+Does nothing and returns nothing.
+
+Will be called instead of `fallback()` if the calldatasize is zero.
+
+#### `fallback`
+```solidity
+fallback() external payable
+```
+
+Uncompresses the calldata and performs a delegatecall to itself.
+
+Accompanying JavaScript library to compress the calldata:  
+https://github.com/vectorized/solady/blob/main/js/solady.js  
+(See: `LibZip.cdCompress`)
 
 ## MulticallerWithSender
 
@@ -287,7 +313,7 @@ Library to read the multicaller contracts.
 #### `MULTICALLER`
 ```solidity
 address internal constant MULTICALLER =
-    0x000000000088228fCF7b8af41Faf3955bD0B3A41;
+    0x0000000000009448722dAF1A55EF6D1E71FB162d;
 ```
 
 The address of the multicaller contract.
