@@ -28,10 +28,11 @@ library LibMulticaller {
     function multicallerSender() internal view returns (address result) {
         /// @solidity memory-safe-assembly
         assembly {
+            mstore(0x00, 0x00)
             if iszero(staticcall(gas(), MULTICALLER_WITH_SENDER, 0x00, 0x00, 0x00, 0x20)) {
-                revert(0, 0) // For better gas estimation.
+                revert(0x00, 0x00) // For better gas estimation.
             }
-            result := mul(mload(0x00), eq(returndatasize(), 0x20))
+            result := mload(0x00)
         }
     }
 
@@ -41,10 +42,11 @@ library LibMulticaller {
     function multicallerSigner() internal view returns (address result) {
         /// @solidity memory-safe-assembly
         assembly {
+            mstore(0x00, 0x00)
             if iszero(staticcall(gas(), MULTICALLER_WITH_SIGNER, 0x00, 0x00, 0x00, 0x20)) {
-                revert(0, 0) // For better gas estimation.
+                revert(0x00, 0x00) // For better gas estimation.
             }
-            result := mul(mload(0x00), eq(returndatasize(), 0x20))
+            result := mload(0x00)
         }
     }
 
@@ -56,17 +58,14 @@ library LibMulticaller {
     function sender() internal view returns (address result) {
         /// @solidity memory-safe-assembly
         assembly {
-            for {} 1 {} {
-                if eq(caller(), MULTICALLER_WITH_SENDER) {
-                    if iszero(staticcall(gas(), MULTICALLER_WITH_SENDER, 0x00, 0x00, 0x00, 0x20)) {
-                        revert(0, 0) // For better gas estimation.
-                    }
-                    result := mload(0x00)
-                    break
+            mstore(0x00, caller())
+            let withSender := MULTICALLER_WITH_SENDER
+            if eq(caller(), withSender) {
+                if iszero(staticcall(gas(), withSender, 0x00, 0x00, 0x00, 0x20)) {
+                    revert(0x00, 0x00) // For better gas estimation.
                 }
-                result := caller()
-                break
             }
+            result := mload(0x00)
         }
     }
 
@@ -80,24 +79,20 @@ library LibMulticaller {
     function senderOrSigner() internal view returns (address result) {
         /// @solidity memory-safe-assembly
         assembly {
-            for {} 1 {} {
-                if eq(caller(), MULTICALLER_WITH_SENDER) {
-                    if iszero(staticcall(gas(), MULTICALLER_WITH_SENDER, 0x00, 0x00, 0x00, 0x20)) {
-                        revert(0, 0) // For better gas estimation.
-                    }
-                    result := mload(0x00)
-                    break
+            mstore(0x00, caller())
+            let withSender := MULTICALLER_WITH_SENDER
+            if eq(caller(), withSender) {
+                if iszero(staticcall(gas(), withSender, 0x00, 0x00, 0x00, 0x20)) {
+                    revert(0x00, 0x00) // For better gas estimation.
                 }
-                if eq(caller(), MULTICALLER_WITH_SIGNER) {
-                    if iszero(staticcall(gas(), MULTICALLER_WITH_SIGNER, 0x00, 0x00, 0x00, 0x20)) {
-                        revert(0, 0) // For better gas estimation.
-                    }
-                    result := mload(0x00)
-                    break
-                }
-                result := caller()
-                break
             }
+            let withSigner := MULTICALLER_WITH_SIGNER
+            if eq(caller(), withSigner) {
+                if iszero(staticcall(gas(), withSigner, 0x00, 0x00, 0x00, 0x20)) {
+                    revert(0x00, 0x00) // For better gas estimation.
+                }
+            }
+            result := mload(0x00)
         }
     }
 }
