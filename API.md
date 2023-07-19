@@ -31,7 +31,7 @@ For receiving ETH.
 
 Does nothing and returns nothing.
 
-Will be called instead of `fallback()` when `msg.data` is empty.
+Will be called instead of `fallback()` if the calldatasize is zero.
 
 #### `fallback`
 ```solidity
@@ -313,7 +313,7 @@ Library to read the multicaller contracts.
 #### `MULTICALLER`
 ```solidity
 address internal constant MULTICALLER =
-    0x000000000088228fCF7b8af41Faf3955bD0B3A41;
+    0x0000000000009448722dAF1A55EF6D1E71FB162d;
 ```
 
 The address of the multicaller contract.
