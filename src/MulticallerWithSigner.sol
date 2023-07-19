@@ -266,11 +266,9 @@ contract MulticallerWithSigner {
             let resultsOffset := data.length
             // Pointer to the end of `results`.
             let end := add(results, data.length)
-
-            // Abuse `signature.length` to store `targets.offset`,
-            // and `signature.offset` to store `values.offset` to avoid stack too deep.
-            signature.length := targets.offset
-            signature.offset := values.offset
+            // For deriving the calldata offsets from the `results` pointer.
+            let valuesOffsetDiff := sub(values.offset, results)
+            let targetsOffsetDiff := sub(targets.offset, results)
 
             for {} 1 {} {
                 // The offset of the current bytes in the calldata.
@@ -285,8 +283,8 @@ contract MulticallerWithSigner {
                 if iszero(
                     call(
                         gas(), // Remaining gas.
-                        calldataload(signature.length), // Address to call.
-                        calldataload(signature.offset), // ETH to send.
+                        calldataload(add(targetsOffsetDiff, results)), // Address to call.
+                        calldataload(add(valuesOffsetDiff, results)), // ETH to send.
                         memPtr, // Start of input calldata in memory.
                         calldataload(o), // Size of input calldata.
                         0x00, // We will use returndatacopy instead.
@@ -297,10 +295,6 @@ contract MulticallerWithSigner {
                     returndatacopy(0x00, 0x00, returndatasize())
                     revert(0x00, returndatasize())
                 }
-                // Advance the `targets.offset`.
-                signature.length := add(signature.length, 0x20)
-                // Advance the `values.offset`.
-                signature.offset := add(signature.offset, 0x20)
                 // Append the current `resultsOffset` into `results`.
                 mstore(results, resultsOffset)
                 results := add(results, 0x20)

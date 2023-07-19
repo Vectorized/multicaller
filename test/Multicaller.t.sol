@@ -176,13 +176,13 @@ contract MulticallerTest is TestPlus {
             LibMulticaller.MULTICALLER_WITH_SIGNER, MULTICALLER_WITH_SIGNER_CREATE2_DEPLOYED_ADDRESS
         );
 
-        // vm.etch(LibMulticaller.MULTICALLER, address(new Multicaller()).code);
-        // multicaller = Multicaller(payable(LibMulticaller.MULTICALLER));
+        vm.etch(LibMulticaller.MULTICALLER, address(new Multicaller()).code);
+        multicaller = Multicaller(payable(LibMulticaller.MULTICALLER));
 
-        // vm.etch(LibMulticaller.MULTICALLER_WITH_SIGNER, address(new MulticallerWithSigner()).code);
-        // vm.store(LibMulticaller.MULTICALLER_WITH_SIGNER, 0, bytes32(uint256(1 << 160)));
-        // multicallerWithSigner =
-        //     MulticallerWithSigner(payable(LibMulticaller.MULTICALLER_WITH_SIGNER));
+        vm.etch(LibMulticaller.MULTICALLER_WITH_SIGNER, address(new MulticallerWithSigner()).code);
+        vm.store(LibMulticaller.MULTICALLER_WITH_SIGNER, 0, bytes32(uint256(1 << 160)));
+        multicallerWithSigner =
+            MulticallerWithSigner(payable(LibMulticaller.MULTICALLER_WITH_SIGNER));
 
         _deployTargets();
     }
