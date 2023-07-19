@@ -116,13 +116,14 @@ contract Multicaller {
                 }
                 // Append the current `resultsOffset` into `results`.
                 mstore(results, resultsOffset)
-                results := add(results, 0x20)
                 // Append the returndatasize, and the returndata.
                 mstore(memPtr, returndatasize())
                 returndatacopy(add(memPtr, 0x20), 0x00, returndatasize())
                 // Advance the `resultsOffset` by `returndatasize() + 0x20`,
                 // rounded up to the next multiple of 0x20.
                 resultsOffset := and(add(add(resultsOffset, returndatasize()), 0x3f), not(0x1f))
+                // Advance the `results` pointer.
+                results := add(results, 0x20)
                 if eq(results, end) { break }
             }
             if refundTo { forceSafeRefundETH(refundTo) }
