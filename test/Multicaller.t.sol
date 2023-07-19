@@ -889,6 +889,16 @@ contract MulticallerTest is TestPlus {
         );
     }
 
+    function testOffsetTrick(uint256 a, uint256 b, uint256 c) public {
+        unchecked {
+            uint256 aDiff = a - c;
+            uint256 bDiff = b - c;
+            uint256 cPlus = c + 0x20;
+            assertEq(cPlus + aDiff, a + 0x20);
+            assertEq(cPlus + bDiff, b + 0x20);
+        }
+    }
+
     function testNastyCalldataRevert() public {
         assembly {
             let m := mload(0x40)
