@@ -85,9 +85,9 @@ contract Multicaller {
             let resultsOffset := data.length
             // Pointer to the end of `results`.
             let end := add(results, data.length)
-            // Cache the `targets.offset` and `values.offset` to avoid stack too deep.
-            let valuesOffset := values.offset
-            let targetsOffset := targets.offset
+            // For deriving the calldata offsets from the `results` pointer.
+            let valuesOffsetDiff := sub(values.offset, results)
+            let targetsOffsetDiff := sub(targets.offset, results)
 
             for {} 1 {} {
                 // The offset of the current bytes in the calldata.
@@ -102,8 +102,8 @@ contract Multicaller {
                 if iszero(
                     call(
                         gas(), // Remaining gas.
-                        calldataload(targetsOffset), // Address to call.
-                        calldataload(valuesOffset), // ETH to send.
+                        calldataload(add(targetsOffsetDiff, results)), // Address to call.
+                        calldataload(add(valuesOffsetDiff, results)), // ETH to send.
                         memPtr, // Start of input calldata in memory.
                         calldataload(o), // Size of input calldata.
                         0x00, // We will use returndatacopy instead.
@@ -114,19 +114,16 @@ contract Multicaller {
                     returndatacopy(0x00, 0x00, returndatasize())
                     revert(0x00, returndatasize())
                 }
-                // Advance the `targets.offset`.
-                targetsOffset := add(targetsOffset, 0x20)
-                // Advance the `values.offset`.
-                valuesOffset := add(valuesOffset, 0x20)
                 // Append the current `resultsOffset` into `results`.
                 mstore(results, resultsOffset)
-                results := add(results, 0x20)
                 // Append the returndatasize, and the returndata.
                 mstore(memPtr, returndatasize())
                 returndatacopy(add(memPtr, 0x20), 0x00, returndatasize())
                 // Advance the `resultsOffset` by `returndatasize() + 0x20`,
                 // rounded up to the next multiple of 0x20.
                 resultsOffset := and(add(add(resultsOffset, returndatasize()), 0x3f), not(0x1f))
+                // Advance the `results` pointer.
+                results := add(results, 0x20)
                 if eq(results, end) { break }
             }
             if refundTo { forceSafeRefundETH(refundTo) }
