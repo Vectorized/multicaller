@@ -218,12 +218,12 @@ contract MulticallerWithSigner {
             calldatacopy(0x40, signature.offset, 0x40) // Copy `r` and `s`.
             pop(
                 staticcall(
-                    gas(), // Amount of gas left for the transaction.
+                    gas(), // Remaining gas.
                     and(eq(signature.length, 65), lt(mload(0x60), _S_THRES)), // `ecrecover`.
-                    returndatasize(), // Start of input.
-                    0x80, // Size of input.
-                    returndatasize(), // Start of output.
-                    0x20 // Size of output.
+                    returndatasize(), // Start of input calldata in memory.
+                    0x80, // Size of input calldata.
+                    returndatasize(), // Start of output returndata in memory.
+                    0x20 // Size of output returndata.
                 )
             )
             // `returndatasize()` will be 0x20 upon success and 0x00 otherwise.
@@ -380,12 +380,12 @@ contract MulticallerWithSigner {
             calldatacopy(0x40, signature.offset, 0x40) // Copy `r` and `s`.
             pop(
                 staticcall(
-                    gas(), // Amount of gas left for the transaction.
+                    gas(), // Remaining gas.
                     and(eq(signature.length, 65), lt(mload(0x60), _S_THRES)), // `ecrecover`.
-                    returndatasize(), // Start of input.
-                    0x80, // Size of input.
-                    returndatasize(), // Start of output.
-                    0x20 // Size of output.
+                    returndatasize(), // Start of input calldata in memory.
+                    0x80, // Size of input calldata.
+                    returndatasize(), // Start of output returndata in memory.
+                    0x20 // Size of output returndata.
                 )
             )
             // `returndatasize()` will be 0x20 upon success and 0x00 otherwise.
@@ -492,12 +492,12 @@ contract MulticallerWithSigner {
             calldatacopy(0x40, signature.offset, 0x40) // Copy `r` and `s`.
             pop(
                 staticcall(
-                    gas(), // Amount of gas left for the transaction.
+                    gas(), // Remaining gas.
                     and(eq(signature.length, 65), lt(mload(0x60), _S_THRES)), // `ecrecover`.
-                    returndatasize(), // Start of input.
-                    0x80, // Size of input.
-                    returndatasize(), // Start of output.
-                    0x20 // Size of output.
+                    returndatasize(), // Start of input calldata in memory.
+                    0x80, // Size of input calldata.
+                    returndatasize(), // Start of output returndata in memory.
+                    0x20 // Size of output returndata.
                 )
             )
             // `returndatasize()` will be 0x20 upon success and 0x00 otherwise.
