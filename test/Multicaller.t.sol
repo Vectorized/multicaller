@@ -179,10 +179,10 @@ contract MulticallerTest is TestPlus {
         // vm.etch(LibMulticaller.MULTICALLER, address(new Multicaller()).code);
         // multicaller = Multicaller(payable(LibMulticaller.MULTICALLER));
 
-        // vm.etch(LibMulticaller.MULTICALLER_WITH_SIGNER, address(new MulticallerWithSigner()).code);
-        // vm.store(LibMulticaller.MULTICALLER_WITH_SIGNER, 0, bytes32(uint256(1 << 160)));
-        // multicallerWithSigner =
-        //     MulticallerWithSigner(payable(LibMulticaller.MULTICALLER_WITH_SIGNER));
+        vm.etch(LibMulticaller.MULTICALLER_WITH_SIGNER, address(new MulticallerWithSigner()).code);
+        vm.store(LibMulticaller.MULTICALLER_WITH_SIGNER, 0, bytes32(uint256(1 << 160)));
+        multicallerWithSigner =
+            MulticallerWithSigner(payable(LibMulticaller.MULTICALLER_WITH_SIGNER));
 
         _deployTargets();
     }
@@ -711,6 +711,67 @@ contract MulticallerTest is TestPlus {
         assertEq(results.length, 0);
 
         _callAndCheckMulticallerWithSigner(t, MulticallerWithSigner.InvalidSignature.selector);
+    }
+
+    function testMulticallerWithSignerEIP712Domain() public {
+        vm.chainId(12345);
+
+        (
+            bytes1 fields,
+            string memory name,
+            string memory version,
+            uint256 chainId,
+            address verifyingContract,
+            bytes32 salt,
+            uint256[] memory extensions
+        ) = multicallerWithSigner.eip712Domain();
+
+        assertEq(fields, bytes1(hex"0f"));
+        assertEq(name, "MulticallerWithSigner");
+        assertEq(version, "1");
+        assertEq(chainId, block.chainid);
+        assertEq(verifyingContract, address(multicallerWithSigner));
+        assertEq(salt, bytes32(0));
+        assertEq(extensions.length, 0);
+    }
+
+    function testMulticallerWithSignerNonPayableFunctions() public {
+        bool success;
+        bytes memory data;
+        vm.deal(address(this), 1 ether);
+
+        data = abi.encodeWithSelector(MulticallerWithSigner.nonceSaltOf.selector, address(this));
+        (success, ) = address(multicallerWithSigner).call{ value: 1 }(data);
+        assertFalse(success);
+        data = abi.encodeWithSelector(MulticallerWithSigner.nonceSaltOf.selector, address(this));
+        (success, ) = address(multicallerWithSigner).call{ value: 0 }(data);
+        assertTrue(success);
+
+        data = abi.encodeWithSelector(MulticallerWithSigner.incrementNonceSalt.selector);
+        (success, ) = address(multicallerWithSigner).call{ value: 1 }(data);
+        assertFalse(success);
+        data = abi.encodeWithSelector(MulticallerWithSigner.incrementNonceSalt.selector);
+        (success, ) = address(multicallerWithSigner).call{ value: 0 }(data);
+        assertTrue(success);
+    }
+
+    function testMulticallerWithSignerRevertsWithNastyArrayLength() public {
+        address target = address(multicallerWithSigner);
+        bool anyFail;
+        assembly {
+            let m := mload(0x40)
+            mstore(m, 0x17447cf1) // `noncesInvalidated(address,uint256[])`.
+            mstore(add(m, 0x20), 1)
+            mstore(add(m, 0x40), 0x40)
+            mstore(add(m, 0x60), 1)
+            mstore(add(m, 0x80), 0)
+            if iszero(staticcall(gas(), target, add(m, 0x1c), 0x84, 0x00, 0x00)) { anyFail := 1 }
+            mstore(add(m, 0x60), 2)
+            if staticcall(gas(), target, add(m, 0x1c), 0x84, 0x00, 0x00) { anyFail := 1 }
+            mstore(add(m, 0x60), 1)
+            if iszero(staticcall(gas(), target, add(m, 0x1c), 0x84, 0x00, 0x00)) { anyFail := 1 }
+        }
+        assertEq(anyFail, false);
     }
 
     function _callMulticallerWithSigner(_TestTemps memory t, uint256 value)

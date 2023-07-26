@@ -288,7 +288,7 @@ function eip712Domain()
 Returns the EIP-712 domain information, as specified in [EIP-5267](https://eips.ethereum.org/EIPS/eip-5267).
 
 - `fields`:            `hex"0f"` (`0b01111`).
-- `name`:              `"MulticallerWithSender"`.
+- `name`:              `"MulticallerWithSigner"`.
 - `version`:           `"1"`.
 - `chainId`:           The chain ID which this contract is on.
 - `verifyingContract`: `address(this)`, the address of this contract.

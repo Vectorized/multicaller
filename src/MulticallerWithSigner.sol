@@ -121,6 +121,7 @@ contract MulticallerWithSigner {
         assembly {
             // Throughout this code, we will abuse returndatasize
             // in place of zero anywhere before a call to save a bit of gas.
+            // For non-payable functions, callvalue may also be used in place of zero.
             // We will use storage slot zero to store the signer at
             // bits [0..159] and reentrancy guard at bits [160..255].
             sstore(returndatasize(), shl(160, address()))
@@ -158,7 +159,7 @@ contract MulticallerWithSigner {
      * @return An array of the returndata from each call.
      */
     function aggregateWithSigner(
-        string memory message,
+        string calldata message,
         address[] calldata targets,
         bytes[] calldata data,
         uint256[] calldata values,
@@ -186,7 +187,8 @@ contract MulticallerWithSigner {
             // Layout the fields of the struct hash.
             mstore(returndatasize(), _AGGREGATE_WITH_SIGNER_TYPEHASH)
             // Compute and store `keccak256(abi.encodePacked(message))`.
-            mstore(0x20, keccak256(add(message, 0x20), mload(message)))
+            calldatacopy(0x20, message.offset, message.length)
+            mstore(0x20, keccak256(0x20, message.length))
             // Compute and store `keccak256(abi.encodePacked(targets))`.
             calldatacopy(0x40, targets.offset, data.length)
             mstore(0x40, keccak256(0x40, data.length))
@@ -214,8 +216,8 @@ contract MulticallerWithSigner {
             // Layout the fields of `ecrecover`.
             mstore(returndatasize(), 0x1901) // Store "\x19\x01".
             mstore(returndatasize(), keccak256(0x1e, 0x42)) // Compute and store the digest.
-            mstore(0x20, byte(returndatasize(), calldataload(add(signature.offset, 0x40)))) // `v`.
-            calldatacopy(0x40, signature.offset, 0x40) // Copy `r` and `s`.
+            calldatacopy(0x40, signature.offset, 0x41) // Copy `r`, `s`, `v`.
+            mstore(0x20, byte(returndatasize(), mload(0x80))) // `v`.
             pop(
                 staticcall(
                     gas(), // Remaining gas.
@@ -231,8 +233,8 @@ contract MulticallerWithSigner {
 
             // Check the nonce.
             mstore(0x00, signer)
-            mstore(0x21, nonce) // `mstore(0x20, shr(8, nonce))`. Byte 0x20 is zero.
-            let bucketSlot := keccak256(0x00, 0x40)
+            mstore(0x20, nonce)
+            let bucketSlot := keccak256(0x00, 0x3f)
             let bucketValue := sload(bucketSlot)
             let bit := shl(and(0xff, nonce), 1)
             if or(iszero(recoverySuccess), and(bit, bucketValue)) {
@@ -333,8 +335,8 @@ contract MulticallerWithSigner {
             let end := shl(5, nonces.length)
             for { let i := returndatasize() } iszero(eq(i, end)) { i := add(i, 0x20) } {
                 let nonce := calldataload(add(nonces.offset, i))
-                mstore(0x21, nonce) // `mstore(0x20, shr(8, nonce))`. Byte 0x20 is zero.
-                let bucketSlot := keccak256(returndatasize(), 0x40)
+                mstore(0x20, nonce)
+                let bucketSlot := keccak256(returndatasize(), 0x3f)
                 sstore(bucketSlot, or(sload(bucketSlot), shl(and(0xff, nonce), 1)))
             }
             // Emit `NoncesInvalidated(msg.sender, nonces)`.
@@ -376,8 +378,8 @@ contract MulticallerWithSigner {
             // Layout the fields of `ecrecover`.
             mstore(returndatasize(), 0x1901) // Store "\x19\x01".
             mstore(returndatasize(), keccak256(0x1e, 0x42)) // Compute and store the digest.
-            mstore(0x20, byte(returndatasize(), calldataload(add(signature.offset, 0x40)))) // `v`.
-            calldatacopy(0x40, signature.offset, 0x40) // Copy `r` and `s`.
+            calldatacopy(0x40, signature.offset, 0x41) // Copy `r`, `s`, `v`.
+            mstore(0x20, byte(returndatasize(), mload(0x80))) // `v`.
             pop(
                 staticcall(
                     gas(), // Remaining gas.
@@ -389,24 +391,24 @@ contract MulticallerWithSigner {
                 )
             )
             // `returndatasize()` will be 0x20 upon success and 0x00 otherwise.
-            if iszero(mul(returndatasize(), eq(mload(0x00), signer))) {
-                mstore(0x00, 0x8baa579f) // `InvalidSignature()`.
+            if iszero(mul(returndatasize(), eq(mload(callvalue()), signer))) {
+                mstore(callvalue(), 0x8baa579f) // `InvalidSignature()`.
                 revert(0x1c, 0x04)
             }
 
-            mstore(0x00, signer)
+            mstore(callvalue(), signer)
             // Iterate through all the nonces and set their boolean values in the storage.
-            for { let i := 0 } iszero(eq(i, end)) { i := add(i, 0x20) } {
+            for { let i := callvalue() } iszero(eq(i, end)) { i := add(i, 0x20) } {
                 let nonce := calldataload(add(nonces.offset, i))
-                mstore(0x21, nonce) // `mstore(0x20, shr(8, nonce))`. Byte 0x20 is zero.
-                let bucketSlot := keccak256(0x00, 0x40)
+                mstore(0x20, nonce)
+                let bucketSlot := keccak256(callvalue(), 0x3f)
                 sstore(bucketSlot, or(sload(bucketSlot), shl(and(0xff, nonce), 1)))
             }
             // Emit `NoncesInvalidated(msg.sender, nonces)`.
-            mstore(0x00, 0x20)
+            mstore(callvalue(), 0x20)
             mstore(0x20, nonces.length)
             calldatacopy(0x40, nonces.offset, end)
-            log2(0x00, add(0x40, end), _NONCES_INVALIDATED_EVENT_SIGNATURE, signer)
+            log2(callvalue(), add(0x40, end), _NONCES_INVALIDATED_EVENT_SIGNATURE, signer)
         }
     }
 
@@ -427,8 +429,8 @@ contract MulticallerWithSigner {
             let end := shl(5, nonces.length)
             for { let i := returndatasize() } iszero(eq(i, end)) { i := add(i, 0x20) } {
                 let nonce := calldataload(add(nonces.offset, i))
-                mstore(0x20, shr(8, nonce))
-                let bit := and(1, shr(and(0xff, nonce), sload(keccak256(returndatasize(), 0x40))))
+                mstore(0x20, nonce)
+                let bit := and(1, shr(and(0xff, nonce), sload(keccak256(returndatasize(), 0x3f))))
                 mstore(add(0x40, i), bit)
             }
             mstore(returndatasize(), 0x20) // Store the memory offset of the `results`.
@@ -488,8 +490,8 @@ contract MulticallerWithSigner {
             // Layout the fields of `ecrecover`.
             mstore(returndatasize(), 0x1901) // Store "\x19\x01".
             mstore(returndatasize(), keccak256(0x1e, 0x42)) // Compute and store the digest.
-            mstore(0x20, byte(returndatasize(), calldataload(add(signature.offset, 0x40)))) // `v`.
-            calldatacopy(0x40, signature.offset, 0x40) // Copy `r` and `s`.
+            calldatacopy(0x40, signature.offset, 0x41) // Copy `r`, `s`, `v`.
+            mstore(0x20, byte(returndatasize(), mload(0x80))) // `v`.
             pop(
                 staticcall(
                     gas(), // Remaining gas.
@@ -501,8 +503,8 @@ contract MulticallerWithSigner {
                 )
             )
             // `returndatasize()` will be 0x20 upon success and 0x00 otherwise.
-            if iszero(mul(returndatasize(), eq(mload(0x00), signer))) {
-                mstore(0x00, 0x8baa579f) // `InvalidSignature()`.
+            if iszero(mul(returndatasize(), eq(mload(callvalue()), signer))) {
+                mstore(callvalue(), 0x8baa579f) // `InvalidSignature()`.
                 revert(0x1c, 0x04)
             }
 
@@ -510,9 +512,9 @@ contract MulticallerWithSigner {
             let newNonceSalt := add(add(1, shr(224, blockhash(sub(number(), 1)))), nonceSalt)
             sstore(nonceSaltSlot, newNonceSalt)
             // Emit `NonceSaltIncremented(msg.sender, newNonceSalt)`.
-            mstore(0x00, newNonceSalt)
-            log2(0x00, 0x20, _NONCE_SALT_INCREMENTED_EVENT_SIGNATURE, signer)
-            return(0x00, 0x20)
+            mstore(callvalue(), newNonceSalt)
+            log2(callvalue(), 0x20, _NONCE_SALT_INCREMENTED_EVENT_SIGNATURE, signer)
+            return(callvalue(), 0x20)
         }
     }
 
@@ -532,7 +534,7 @@ contract MulticallerWithSigner {
      * @dev Returns the EIP-712 domain information, as specified in
      *      [EIP-5267](https://eips.ethereum.org/EIPS/eip-5267).
      * @return fields            `hex"0f"` (`0b01111`).
-     * @return name              `"MulticallerWithSender"`.
+     * @return name              `"MulticallerWithSigner"`.
      * @return version           `"1"`.
      * @return chainId           The chain ID which this contract is on.
      * @return verifyingContract `address(this)`, the address of this contract.
@@ -552,12 +554,23 @@ contract MulticallerWithSigner {
             uint256[] memory extensions
         )
     {
-        fields = hex"0f"; // `0b01111`.
-        name = "MulticallerWithSigner";
-        version = "1";
-        chainId = block.chainid;
-        verifyingContract = address(this);
-        salt = salt; // `bytes32(0)`.
-        extensions = extensions; // `new uint256[](0)`.
+        assembly {
+            pop(fields)
+            mstore8(returndatasize(), 0x0f)
+            pop(name)
+            mstore(0x20, 0xe0)
+            mstore(0xf5, 0x154d756c746963616c6c6572576974685369676e6572)
+            pop(version)
+            mstore(0x40, 0x120)
+            mstore(0x121, 0x0131)
+            pop(chainId)
+            mstore(0x60, chainid())
+            pop(verifyingContract)
+            mstore(0x80, address())
+            pop(salt)
+            pop(extensions)
+            mstore(0xc0, 0x160)
+            return(returndatasize(), 0x180)
+        }
     }
 }
