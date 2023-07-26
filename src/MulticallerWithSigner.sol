@@ -204,7 +204,7 @@ contract MulticallerWithSigner {
             calldatacopy(0x80, values.offset, data.length)
             mstore(0x80, keccak256(0x80, data.length))
             mstore(0xa0, nonce) // Store the nonce.
-            mstore(0xc0, sload(or(shl(96, signer), 1))) // Store the nonce salt.
+            mstore(0xc0, sload(add(signer, address()))) // Store the nonce salt.
             mstore(0x40, keccak256(returndatasize(), 0xe0)) // Compute and store the struct hash.
             // Layout the fields of the domain separator.
             mstore(0x60, _DOMAIN_TYPEHASH)
@@ -366,7 +366,7 @@ contract MulticallerWithSigner {
             // Compute and store `keccak256(abi.encodePacked(nonces))`.
             calldatacopy(0x20, nonces.offset, end)
             mstore(0x20, keccak256(0x20, end))
-            mstore(0x40, sload(or(shl(96, signer), 1))) // Store the nonce salt.
+            mstore(0x40, sload(add(signer, address()))) // Store the nonce salt.
             mstore(0x40, keccak256(returndatasize(), 0x60)) // Compute and store the struct hash.
             // Layout the fields of the domain separator.
             mstore(0x60, _DOMAIN_TYPEHASH)
@@ -448,7 +448,7 @@ contract MulticallerWithSigner {
      */
     function incrementNonceSalt() external returns (uint256) {
         assembly {
-            let nonceSaltSlot := or(shl(96, caller()), 1)
+            let nonceSaltSlot := add(caller(), address())
             // Increment by some pseudorandom amount from [1..4294967296].
             let nonceSalt := sload(nonceSaltSlot)
             let newNonceSalt := add(add(1, shr(224, blockhash(sub(number(), 1)))), nonceSalt)
@@ -474,7 +474,7 @@ contract MulticallerWithSigner {
         returns (uint256)
     {
         assembly {
-            let nonceSaltSlot := or(shl(96, signer), 1)
+            let nonceSaltSlot := add(signer, address())
             let nonceSalt := sload(nonceSaltSlot)
             // Layout the fields of the struct hash.
             mstore(returndatasize(), _INCREMENT_NONCE_SALT_FOR_SIGNER_TYPEHASH)
@@ -525,7 +525,7 @@ contract MulticallerWithSigner {
      */
     function nonceSaltOf(address signer) external view returns (uint256) {
         assembly {
-            mstore(returndatasize(), sload(or(shl(96, signer), 1)))
+            mstore(returndatasize(), sload(add(signer, address())))
             return(returndatasize(), 0x20)
         }
     }

@@ -741,17 +741,17 @@ contract MulticallerTest is TestPlus {
         vm.deal(address(this), 1 ether);
 
         data = abi.encodeWithSelector(MulticallerWithSigner.nonceSaltOf.selector, address(this));
-        (success, ) = address(multicallerWithSigner).call{ value: 1 }(data);
+        (success,) = address(multicallerWithSigner).call{value: 1}(data);
         assertFalse(success);
         data = abi.encodeWithSelector(MulticallerWithSigner.nonceSaltOf.selector, address(this));
-        (success, ) = address(multicallerWithSigner).call{ value: 0 }(data);
+        (success,) = address(multicallerWithSigner).call{value: 0}(data);
         assertTrue(success);
 
         data = abi.encodeWithSelector(MulticallerWithSigner.incrementNonceSalt.selector);
-        (success, ) = address(multicallerWithSigner).call{ value: 1 }(data);
+        (success,) = address(multicallerWithSigner).call{value: 1}(data);
         assertFalse(success);
         data = abi.encodeWithSelector(MulticallerWithSigner.incrementNonceSalt.selector);
-        (success, ) = address(multicallerWithSigner).call{ value: 0 }(data);
+        (success,) = address(multicallerWithSigner).call{value: 0}(data);
         assertTrue(success);
     }
 
