@@ -288,7 +288,7 @@ function eip712Domain()
 Returns the EIP-712 domain information, as specified in [EIP-5267](https://eips.ethereum.org/EIPS/eip-5267).
 
 - `fields`:            `hex"0f"` (`0b01111`).
-- `name`:              `"MulticallerWithSender"`.
+- `name`:              `"MulticallerWithSigner"`.
 - `version`:           `"1"`.
 - `chainId`:           The chain ID which this contract is on.
 - `verifyingContract`: `address(this)`, the address of this contract.
@@ -329,7 +329,7 @@ The address of the multicaller with sender contract.
 #### `MULTICALLER_WITH_SIGNER`
 ```solidity
 address internal constant MULTICALLER_WITH_SIGNER =
-    0x000000000000a5183fcB3bb58a7Ce24ba2AddFDd;
+    0x0000000000007e02fB2d04caa1C19Ac15d8E77A3;
 ```
 
 The address of the multicaller with signer contract.
