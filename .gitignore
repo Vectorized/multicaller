@@ -31,3 +31,4 @@ lcov.info
 /multicaller_with_sender
 /multicaller_with_signer
 .tmp
+salts.txt
