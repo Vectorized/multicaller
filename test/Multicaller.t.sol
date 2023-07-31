@@ -6,6 +6,8 @@ import {Multicaller} from "../src/Multicaller.sol";
 import {MulticallerWithSender} from "../src/MulticallerWithSender.sol";
 import {MulticallerWithSigner} from "../src/MulticallerWithSigner.sol";
 import {LibMulticaller} from "../src/LibMulticaller.sol";
+import {MockERC1271Wallet} from "./utils/mocks/MockERC1271Wallet.sol";
+import {MockERC1271Malicious} from "./utils/mocks/MockERC1271Malicious.sol";
 
 /**
  * @dev Target contract for the multicaller for testing purposes.
@@ -139,6 +141,11 @@ contract MulticallerTest is TestPlus {
     FallbackTarget fallbackTargetA;
     FallbackTarget fallbackTargetB;
 
+    address erc721Signer;
+    uint256 erc721SignerPrivateKey;
+    address erc1271Wallet;
+    address erc1271Malicious;
+
     event NoncesInvalidated(address indexed signer, uint256[] nonces);
 
     event NonceSaltIncremented(address indexed signer, uint256 newNonceSalt);
@@ -192,6 +199,12 @@ contract MulticallerTest is TestPlus {
         targetB = new MulticallerTarget("B");
         fallbackTargetA = new FallbackTarget();
         fallbackTargetB = new FallbackTarget();
+    }
+
+    function _deployERC1271Contracts() internal virtual {
+        (erc721Signer, erc721SignerPrivateKey) = _randomSigner();
+        erc1271Wallet = address(new MockERC1271Wallet(erc721Signer));
+        erc1271Malicious = address(new MockERC1271Malicious());
     }
 
     function testMulticallerRefund(uint256) public {
@@ -602,6 +615,36 @@ contract MulticallerTest is TestPlus {
         }
     }
 
+    function testMulticallerWithSignerWithERC1271(uint256) public {
+        _deployERC1271Contracts();
+        _TestTemps memory t = _testTemps();
+        t.signer = erc1271Wallet;
+        t.privateKey = erc721SignerPrivateKey;
+        t.nonceSalt = multicallerWithSigner.nonceSaltOf(t.signer);
+        _generateSignature(t);
+
+        vm.deal(address(this), type(uint160).max);
+
+        if (_random() % 2 == 0) {
+            t.signer = erc1271Malicious;
+            _callAndCheckMulticallerWithSigner(t, MulticallerWithSigner.InvalidSignature.selector);
+        } else {
+            bytes[] memory results = _callAndCheckMulticallerWithSigner(t, bytes4(0));
+
+            unchecked {
+                uint256 expectedHashSum;
+                for (uint256 i; i < t.data.length; ++i) {
+                    expectedHashSum += uint256(keccak256(t.data[i]));
+                }
+                uint256 actualHashSum = fallbackTargetA.hashSum() + fallbackTargetB.hashSum();
+                assertEq(actualHashSum, expectedHashSum);
+                for (uint256 i; i < results.length; ++i) {
+                    assertEq(keccak256(results[i]), keccak256(t.data[i]));
+                }
+            }
+        }
+    }
+
     function _checkBalance(_TestTemps memory t, address target) internal {
         unchecked {
             uint256 expected;
@@ -869,6 +912,35 @@ contract MulticallerTest is TestPlus {
         }
     }
 
+    function testMulticallerWithSignerInvalidateNoncesWithERC1271(uint256) public {
+        _deployERC1271Contracts();
+        unchecked {
+            uint256[] memory nonces = new uint256[](_random() % 4);
+            if (_random() % 2 == 0) {
+                for (uint256 i; i < nonces.length; ++i) {
+                    nonces[i] = _random();
+                }
+            } else {
+                for (uint256 i; i < nonces.length; ++i) {
+                    nonces[i] = _random() % 8;
+                }
+            }
+
+            bytes memory signature =
+                _generateInvalidateNoncesSignature(nonces, erc1271Wallet, erc721SignerPrivateKey);
+
+            vm.expectRevert(MulticallerWithSigner.InvalidSignature.selector);
+            multicallerWithSigner.invalidateNoncesForSigner(nonces, erc1271Malicious, signature);
+
+            vm.expectEmit(true, true, true, true);
+            emit NoncesInvalidated(erc1271Wallet, nonces);
+            multicallerWithSigner.invalidateNoncesForSigner(nonces, erc1271Wallet, signature);
+
+            vm.expectRevert(MulticallerWithSigner.InvalidSignature.selector);
+            multicallerWithSigner.invalidateNoncesForSigner(nonces, erc1271Malicious, signature);
+        }
+    }
+
     function testMultiCallerWithSignerIncrementNonceSalt(uint256) public {
         (address signer, uint256 privateKey) = _randomSigner();
 
@@ -892,6 +964,23 @@ contract MulticallerTest is TestPlus {
             uint256 nonceSaltAfter = multicallerWithSigner.nonceSaltOf(signer);
             assertEq(nextNonceSalt, nonceSaltAfter);
         }
+    }
+
+    function testMultiCallerWithSignerIncrementNonceSaltWithERC1271(uint256) public {
+        _deployERC1271Contracts();
+        uint256 nonceSaltBefore = multicallerWithSigner.nonceSaltOf(erc1271Wallet);
+        uint256 nextNonceSalt = _nextNonceSalt(nonceSaltBefore);
+        bytes memory signature =
+            _generateIncrementNonceSaltSignature(erc1271Wallet, erc721SignerPrivateKey);
+
+        vm.expectRevert(MulticallerWithSigner.InvalidSignature.selector);
+        multicallerWithSigner.incrementNonceSaltForSigner(erc1271Malicious, signature);
+
+        emit NonceSaltIncremented(erc1271Wallet, nextNonceSalt);
+        multicallerWithSigner.incrementNonceSaltForSigner(erc1271Wallet, signature);
+
+        vm.expectRevert(MulticallerWithSigner.InvalidSignature.selector);
+        multicallerWithSigner.incrementNonceSaltForSigner(erc1271Wallet, signature);
     }
 
     function _generateInvalidateNoncesSignature(
