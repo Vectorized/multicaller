@@ -1049,24 +1049,36 @@ contract MulticallerTest is TestPlus {
         }
     }
 
+    function revertsOnNastyCalldata(address[] calldata a) public pure returns (bytes32) {
+        return keccak256(abi.encodePacked(a));
+    }
+
     function testNastyCalldataRevert() public {
         assembly {
             let m := mload(0x40)
-            mstore(m, 0x2eb48a80)
+
+            mstore(m, 0xcf74109c)
             mstore(add(m, 0x20), 0x20)
             mstore(add(m, 0x40), 1)
             mstore(add(m, 0x60), 0x112233)
-            if iszero(
-                call(gas(), sload(multicallerWithSigner.slot), 0, add(m, 0x1c), 0x80, 0x00, 0x00)
-            ) { revert(0x00, 0x00) }
+
+            // Check does not revert with valid calldata.
+            if iszero(call(gas(), address(), 0, add(m, 0x1c), 0x80, 0x00, 0x00)) {
+                revert(0x00, 0x00)
+            }
+
+            // Check reverts if address has dirty upper bits.
+            mstore(add(m, 0x60), not(0))
+            if call(gas(), address(), 0, add(m, 0x1c), 0x80, 0x00, 0x00) { revert(0x00, 0x00) }
+            mstore(add(m, 0x60), 0x112233)
+
+            // Check reverts if length of array is excessive.
             mstore(add(m, 0x40), 2)
-            if call(gas(), sload(multicallerWithSigner.slot), 0, add(m, 0x1c), 0x80, 0x00, 0x00) {
-                revert(0x00, 0x00)
-            }
+            if call(gas(), address(), 0, add(m, 0x1c), 0x80, 0x00, 0x00) { revert(0x00, 0x00) }
+
+            // Check reverts if length of array is excessive.
             mstore(add(m, 0x40), shl(255, 1))
-            if call(gas(), sload(multicallerWithSigner.slot), 0, add(m, 0x1c), 0x80, 0x00, 0x00) {
-                revert(0x00, 0x00)
-            }
+            if call(gas(), address(), 0, add(m, 0x1c), 0x80, 0x00, 0x00) { revert(0x00, 0x00) }
         }
     }
 
