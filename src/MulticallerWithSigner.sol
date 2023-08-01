@@ -86,13 +86,6 @@ contract MulticallerWithSigner {
     bytes32 private constant _VERSION_HASH =
         0xc89efdaa54c0f20c7adf612882df0950f5a951637e0307cdcb4c672f298b8bc6;
 
-    /**
-     * @dev The number which `s` must be less than in order for
-     *      the signature to be non-malleable.
-     */
-    bytes32 private constant _S_THRES =
-        0x7fffffffffffffffffffffffffffffff5d576e7357a4501ddfe92f46681b20a1;
-
     // =============================================================
     //                            ERRORS
     // =============================================================
@@ -220,7 +213,7 @@ contract MulticallerWithSigner {
                 mstore(returndatasize(), digest) // Store the digest.
                 calldatacopy(0x40, signature.offset, signature.length) // Copy `r`, `s`, `v`.
                 mstore(0x20, byte(returndatasize(), mload(0x80))) // `v`.
-                let t := staticcall(gas(), lt(mload(0x60), _S_THRES), 0x00, 0x80, 0x01, 0x20)
+                let t := staticcall(gas(), 1, 0x00, 0x80, 0x01, 0x20)
                 signatureIsValid := mul(returndatasize(), eq(signer, mload(t)))
             }
             // ERC1271 fallback.
@@ -387,7 +380,7 @@ contract MulticallerWithSigner {
                 mstore(returndatasize(), digest) // Store the digest.
                 calldatacopy(0x40, signature.offset, signature.length) // Copy `r`, `s`, `v`.
                 mstore(0x20, byte(returndatasize(), mload(0x80))) // `v`.
-                let t := staticcall(gas(), lt(mload(0x60), _S_THRES), 0x00, 0x80, 0x01, 0x20)
+                let t := staticcall(gas(), 1, 0x00, 0x80, 0x01, 0x20)
                 signatureIsValid := mul(returndatasize(), eq(signer, mload(t)))
             }
             // ERC1271 fallback.
@@ -505,7 +498,7 @@ contract MulticallerWithSigner {
                 mstore(returndatasize(), digest) // Store the digest.
                 calldatacopy(0x40, signature.offset, signature.length) // Copy `r`, `s`, `v`.
                 mstore(0x20, byte(returndatasize(), mload(0x80))) // `v`.
-                let t := staticcall(gas(), lt(mload(0x60), _S_THRES), 0x00, 0x80, 0x01, 0x20)
+                let t := staticcall(gas(), 1, 0x00, 0x80, 0x01, 0x20)
                 signatureIsValid := mul(returndatasize(), eq(signer, mload(t)))
             }
             // ERC1271 fallback.
