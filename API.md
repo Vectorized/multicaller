@@ -106,9 +106,8 @@ bytes32 private constant _AGGREGATE_WITH_SIGNER_TYPEHASH =
 
 For EIP-712 signature digest calculation for the `aggregateWithSigner` function.
 
-`keccak256("AggregateWithSigner(string message,address[] targets,bytes[] data,uint256[] values,uint256 nonce,uint256 nonceSalt)")`.
+`keccak256("AggregateWithSigner(address[] targets,bytes[] data,uint256[] values,uint256 nonce,uint256 nonceSalt)")`.
 
-- `message`:   A human readable message on what the signature is about.
 - `targets`:   An array of addresses to call.
 - `data`:      An array of calldata to forward to the targets.
 - `values`:    How much ETH to forward to each target.
@@ -176,7 +175,6 @@ For EIP-712 signature digest calculation.
 #### `aggregateWithSigner`
 ```solidity
 function aggregateWithSigner(
-    string memory message,
     address[] calldata targets,
     bytes[] calldata data,
     uint256[] calldata values,
@@ -329,7 +327,7 @@ The address of the multicaller with sender contract.
 #### `MULTICALLER_WITH_SIGNER`
 ```solidity
 address internal constant MULTICALLER_WITH_SIGNER =
-    0x0000000000003C6E14B7f65dA82b10132d9904F9;
+    0x000000000000559d80632Dd9Ff96cac571Ab4068;
 ```
 
 The address of the multicaller with signer contract.
