@@ -44,10 +44,10 @@ contract MulticallerWithSigner {
     /**
      * @dev For EIP-712 signature digest calculation for the
      *      `aggregateWithSigner` function.
-     *      `keccak256("AggregateWithSigner(string message,address[] targets,bytes[] data,uint256[] values,uint256 nonce,uint256 nonceSalt)")`.
+     *      `keccak256("AggregateWithSigner(address[] targets,bytes[] data,uint256[] values,uint256 nonce,uint256 nonceSalt)")`.
      */
     bytes32 private constant _AGGREGATE_WITH_SIGNER_TYPEHASH =
-        0xc4d2f044d99707794280032fc14879a220a3f7dc766d75100809624f91d69e97;
+        0x7d4195b902a78aa23ae8c64d4cecdf8424f3171e7c7e34ed94e6fab3efd018ab;
 
     /**
      * @dev For EIP-712 signature digest calculation for the
@@ -141,7 +141,6 @@ contract MulticallerWithSigner {
      *      for the span of its execution.
      *      This method does not support reentrancy.
      *      Emits a `NoncesInvalidated(signer, [nonce])` event.
-     * @param message   A human readable message on what the signature is about.
      * @param targets   An array of addresses to call.
      * @param data      An array of calldata to forward to the targets.
      * @param values    How much ETH to forward to each target.
@@ -151,7 +150,6 @@ contract MulticallerWithSigner {
      * @return An array of the returndata from each call.
      */
     function aggregateWithSigner(
-        string calldata message,
         address[] calldata targets,
         bytes[] calldata data,
         uint256[] calldata values,
@@ -176,28 +174,28 @@ contract MulticallerWithSigner {
 
             /* -------------------- CHECK SIGNATURE --------------------- */
 
-            // Layout the fields of the struct hash.
-            mstore(returndatasize(), _AGGREGATE_WITH_SIGNER_TYPEHASH)
-            // Compute and store `keccak256(abi.encodePacked(message))`.
-            calldatacopy(0x20, message.offset, message.length)
-            mstore(0x20, keccak256(0x20, message.length))
-            // Compute and store `keccak256(abi.encodePacked(targets))`.
-            calldatacopy(0x40, targets.offset, data.length)
-            mstore(0x40, keccak256(0x40, data.length))
-            // Compute and store `keccak256(abi.encodePacked(keccak256(data[0]), ..))`.
+            // Compute `keccak256(abi.encodePacked(values))`.
+            calldatacopy(returndatasize(), values.offset, data.length)
+            let valuesHash := keccak256(returndatasize(), data.length)
+            // Compute `keccak256(abi.encodePacked(keccak256(data[0]), ..))`.
             for { let i := returndatasize() } iszero(eq(i, data.length)) { i := add(i, 0x20) } {
                 let o := add(data.offset, calldataload(add(data.offset, i)))
-                let p := add(0x60, i)
-                calldatacopy(p, add(o, 0x20), calldataload(o))
-                mstore(p, keccak256(p, calldataload(o)))
+                calldatacopy(i, add(o, 0x20), calldataload(o))
+                mstore(i, keccak256(i, calldataload(o)))
             }
-            mstore(0x60, keccak256(0x60, data.length))
-            // Compute and store `keccak256(abi.encodePacked(values))`.
-            calldatacopy(0x80, values.offset, data.length)
-            mstore(0x80, keccak256(0x80, data.length))
-            mstore(0xa0, nonce) // Store the nonce.
-            mstore(0xc0, sload(add(signer, address()))) // Store the nonce salt.
-            mstore(0x40, keccak256(returndatasize(), 0xe0)) // Compute and store the struct hash.
+            let dataHash := keccak256(returndatasize(), data.length)
+            // Compute `keccak256(abi.encodePacked(targets))`.
+            calldatacopy(returndatasize(), targets.offset, data.length)
+            let targetsHash := keccak256(returndatasize(), data.length)
+
+            // Layout the fields of the struct hash.
+            mstore(returndatasize(), _AGGREGATE_WITH_SIGNER_TYPEHASH)
+            mstore(0x20, targetsHash)
+            mstore(0x40, dataHash)
+            mstore(0x60, valuesHash)
+            mstore(0x80, nonce)
+            mstore(0xa0, sload(add(signer, address()))) // Store the nonce salt.
+            mstore(0x40, keccak256(returndatasize(), 0xc0)) // Compute and store the struct hash.
             // Layout the fields of the domain separator.
             mstore(0x60, _DOMAIN_TYPEHASH)
             mstore(0x80, _NAME_HASH)
@@ -229,9 +227,9 @@ contract MulticallerWithSigner {
             }
 
             // Check the nonce.
-            mstore(0x00, signer)
-            mstore(0x20, nonce)
-            let bucketSlot := keccak256(0x00, 0x3f)
+            mstore(0x20, signer)
+            mstore(0x40, nonce)
+            let bucketSlot := keccak256(0x20, 0x3f)
             let bucketValue := sload(bucketSlot)
             let bit := shl(and(0xff, nonce), 1)
             if or(iszero(signatureIsValid), and(bit, bucketValue)) {
@@ -243,7 +241,7 @@ contract MulticallerWithSigner {
             // Emit `NoncesInvalidated(signer, [nonce])`.
             mstore(0x00, 0x20)
             mstore(0x20, 1)
-            mstore(0x40, nonce)
+            // The nonce is already at 0x40.
             log2(0x00, 0x60, _NONCES_INVALIDATED_EVENT_SIGNATURE, signer)
 
             /* ------------------- PERFORM AGGREGATE -------------------- */
