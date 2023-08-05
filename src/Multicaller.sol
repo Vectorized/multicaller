@@ -140,7 +140,8 @@ contract Multicaller {
     receive() external payable {}
 
     /**
-     * @dev Uncompresses the calldata and performs a delegatecall to itself.
+     * @dev Decompresses the calldata and performs a delegatecall
+     *      with the decompressed calldata to itself.
      *
      *      Accompanying JavaScript library to compress the calldata:
      *      https://github.com/vectorized/solady/blob/main/js/solady.js

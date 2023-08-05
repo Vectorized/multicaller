@@ -38,7 +38,7 @@ Will be called instead of `fallback()` if the calldatasize is zero.
 fallback() external payable
 ```
 
-Uncompresses the calldata and performs a delegatecall to itself.
+Decompresses the calldata and performs a delegatecall with the decompressed calldata to itself.
 
 Accompanying JavaScript library to compress the calldata:  
 https://github.com/vectorized/solady/blob/main/js/solady.js  
@@ -311,7 +311,7 @@ Library to read the multicaller contracts.
 #### `MULTICALLER`
 ```solidity
 address internal constant MULTICALLER =
-    0x0000000000001dd369E6DD26865DbF11B0FF73F1;
+    0x000000000000d991d267E53C7866fFA66DC2f61f;
 ```
 
 The address of the multicaller contract.
