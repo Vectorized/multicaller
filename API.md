@@ -356,6 +356,16 @@ Returns the caller of `aggregateWithSender` on the multicaller with sender contr
 
 Otherwise, returns `msg.sender`.
 
+
+#### `signer`
+```solidity
+function signer() internal view returns (address result)
+```  
+Returns the caller of `aggregateWithSigner` on the multicaller with signer contract, if `msg.sender` is the multicaller with signer contract.
+
+Otherwise, returns `msg.sender`.
+
+
 #### `senderOrSigner`
 ```solidity
 function senderOrSigner() internal view returns (address result)
