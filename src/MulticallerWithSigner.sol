@@ -115,8 +115,8 @@ contract MulticallerWithSigner {
             // Throughout this code, we will abuse returndatasize
             // in place of zero anywhere before a call to save a bit of gas.
             // We will use storage slot zero to store the signer at
-            // bits [0..159] and reentrancy guard at bits [160..255].
-            sstore(returndatasize(), shl(160, address()))
+            // bits [96..255] and reentrancy guard at bit 1.
+            sstore(returndatasize(), 1)
         }
     }
 
@@ -130,7 +130,7 @@ contract MulticallerWithSigner {
      */
     receive() external payable {
         assembly {
-            mstore(returndatasize(), shr(96, shl(96, sload(returndatasize()))))
+            mstore(0x0c, sload(returndatasize()))
             return(returndatasize(), 0x20)
         }
     }
@@ -163,7 +163,7 @@ contract MulticallerWithSigner {
                 revert(0x1c, 0x04)
             }
 
-            if iszero(shr(160, sload(returndatasize()))) {
+            if iszero(and(1, sload(returndatasize()))) {
                 mstore(returndatasize(), 0xab143c06) // `Reentrancy()`.
                 revert(0x1c, 0x04)
             }
@@ -254,7 +254,7 @@ contract MulticallerWithSigner {
             }
 
             // Set the signer slot temporarily for the span of this transaction.
-            sstore(0, signer)
+            sstore(0, shl(96, signer))
 
             let results := 0x40
             // Copy the offsets from calldata into memory.
@@ -308,7 +308,7 @@ contract MulticallerWithSigner {
             mstore(0x20, targets.length) // Store `targets.length` into `results`.
 
             // Restore the `signer` slot.
-            sstore(0, shl(160, address()))
+            sstore(0, 1)
             // Direct return.
             return(0x00, add(resultsOffset, 0x40))
         }

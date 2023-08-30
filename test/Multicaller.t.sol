@@ -187,7 +187,7 @@ contract MulticallerTest is TestPlus {
         multicaller = Multicaller(payable(LibMulticaller.MULTICALLER));
 
         vm.etch(LibMulticaller.MULTICALLER_WITH_SIGNER, address(new MulticallerWithSigner()).code);
-        vm.store(LibMulticaller.MULTICALLER_WITH_SIGNER, 0, bytes32(uint256(1 << 160)));
+        vm.store(LibMulticaller.MULTICALLER_WITH_SIGNER, 0, bytes32(uint256(1)));
         multicallerWithSigner =
             MulticallerWithSigner(payable(LibMulticaller.MULTICALLER_WITH_SIGNER));
 
