@@ -20,7 +20,7 @@ library LibMulticaller {
     /**
      * @dev The address of the multicaller contract.
      */
-    address internal constant MULTICALLER = 0x000000000000d991d267E53C7866fFA66DC2f61f;
+    address internal constant MULTICALLER = 0x000000000000FddAde488c25f238b061829fE2Bf;
 
     /**
      * @dev The address of the multicaller with sender contract.
