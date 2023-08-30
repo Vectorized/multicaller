@@ -5,6 +5,16 @@ pragma solidity ^0.8.4;
  * @title LibMulticaller
  * @author vectorized.eth
  * @notice Library to read the `msg.sender` of the multicaller with sender contract.
+ *
+ * @dev Note:
+ * The functions in this library do NOT guard against reentrancy.
+ * A single transaction can recurse through different Multicallers
+ * (e.g. `MulticallerWithSender -> contract -> MulticallerWithSigner -> contract`).
+ *
+ * Think of these functions like `msg.sender`.
+ *
+ * If your contract `C` can handle reentrancy safely with plain old `msg.sender`
+ * for any `A -> C -> B -> C`, you should be fine substituting `msg.sender` with these functions.
  */
 library LibMulticaller {
     /**

@@ -334,6 +334,15 @@ The address of the multicaller with signer contract.
 
 ### Functions
 
+The functions in this library do NOT guard against reentrancy.
+
+A single transaction can recurse through different Multicallers  
+(e.g. `MulticallerWithSender -> contract -> MulticallerWithSigner -> contract`).
+
+Think of these functions like `msg.sender`.
+
+If your contract `C` can handle reentrancy safely with plain old `msg.sender` for any `A -> C -> B -> C`, you should be fine substituting `msg.sender` with these functions.
+
 #### `multicallerSender`
 ```solidity
 function multicallerSender() internal view returns (address)
