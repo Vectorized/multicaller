@@ -222,8 +222,8 @@ contract MulticallerWithSigner {
                 mstore(0x24, 0x40)
                 mstore(0x44, signature.length)
                 calldatacopy(0x64, signature.offset, signature.length)
-                let t := staticcall(gas(), signer, 0x00, add(signature.length, 0x64), 0x00, 0x20)
-                signatureIsValid := and(and(eq(mload(0x00), f), eq(returndatasize(), 0x20)), t)
+                let t := staticcall(gas(), signer, 0x00, add(signature.length, 0x64), 0x24, 0x20)
+                signatureIsValid := and(eq(mload(0x24), f), t)
             }
 
             // Check the nonce.
@@ -389,8 +389,8 @@ contract MulticallerWithSigner {
                 mstore(0x24, 0x40)
                 mstore(0x44, signature.length)
                 calldatacopy(0x64, signature.offset, signature.length)
-                let t := staticcall(gas(), signer, 0x00, add(signature.length, 0x64), 0x00, 0x20)
-                signatureIsValid := and(and(eq(mload(0x00), f), eq(returndatasize(), 0x20)), t)
+                let t := staticcall(gas(), signer, 0x00, add(signature.length, 0x64), 0x24, 0x20)
+                signatureIsValid := and(eq(mload(0x24), f), t)
             }
             if iszero(signatureIsValid) {
                 mstore(0x00, 0x8baa579f) // `InvalidSignature()`.
@@ -507,8 +507,8 @@ contract MulticallerWithSigner {
                 mstore(0x24, 0x40)
                 mstore(0x44, signature.length)
                 calldatacopy(0x64, signature.offset, signature.length)
-                let t := staticcall(gas(), signer, 0x00, add(signature.length, 0x64), 0x00, 0x20)
-                signatureIsValid := and(and(eq(mload(0x00), f), eq(returndatasize(), 0x20)), t)
+                let t := staticcall(gas(), signer, 0x00, add(signature.length, 0x64), 0x24, 0x20)
+                signatureIsValid := and(eq(mload(0x24), f), t)
             }
             if iszero(signatureIsValid) {
                 mstore(0x00, 0x8baa579f) // `InvalidSignature()`.
