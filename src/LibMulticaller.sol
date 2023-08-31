@@ -5,12 +5,22 @@ pragma solidity ^0.8.4;
  * @title LibMulticaller
  * @author vectorized.eth
  * @notice Library to read the `msg.sender` of the multicaller with sender contract.
+ *
+ * @dev Note:
+ * The functions in this library do NOT guard against reentrancy.
+ * A single transaction can recurse through different Multicallers
+ * (e.g. `MulticallerWithSender -> contract -> MulticallerWithSigner -> contract`).
+ *
+ * Think of these functions like `msg.sender`.
+ *
+ * If your contract `C` can handle reentrancy safely with plain old `msg.sender`
+ * for any `A -> C -> B -> C`, you should be fine substituting `msg.sender` with these functions.
  */
 library LibMulticaller {
     /**
      * @dev The address of the multicaller contract.
      */
-    address internal constant MULTICALLER = 0x000000000000d991d267E53C7866fFA66DC2f61f;
+    address internal constant MULTICALLER = 0x000000000000FddAde488c25f238b061829fE2Bf;
 
     /**
      * @dev The address of the multicaller with sender contract.
@@ -20,7 +30,7 @@ library LibMulticaller {
     /**
      * @dev The address of the multicaller with signer contract.
      */
-    address internal constant MULTICALLER_WITH_SIGNER = 0x000000000000559d80632Dd9Ff96cac571Ab4068;
+    address internal constant MULTICALLER_WITH_SIGNER = 0x0000000000005A3a8e2D745f0cDdEDC90946Ab1a;
 
     /**
      * @dev Returns the caller of `aggregateWithSender` on `MULTICALLER_WITH_SENDER`.
@@ -29,7 +39,7 @@ library LibMulticaller {
         /// @solidity memory-safe-assembly
         assembly {
             mstore(0x00, 0x00)
-            if iszero(staticcall(gas(), MULTICALLER_WITH_SENDER, 0x00, 0x00, 0x00, 0x20)) {
+            if iszero(staticcall(gas(), MULTICALLER_WITH_SENDER, gas(), 0x00, 0x00, 0x20)) {
                 revert(0x00, 0x00) // For better gas estimation.
             }
             result := mload(0x00)
@@ -43,7 +53,7 @@ library LibMulticaller {
         /// @solidity memory-safe-assembly
         assembly {
             mstore(0x00, 0x00)
-            if iszero(staticcall(gas(), MULTICALLER_WITH_SIGNER, 0x00, 0x00, 0x00, 0x20)) {
+            if iszero(staticcall(gas(), MULTICALLER_WITH_SIGNER, gas(), 0x00, 0x00, 0x20)) {
                 revert(0x00, 0x00) // For better gas estimation.
             }
             result := mload(0x00)
@@ -61,7 +71,26 @@ library LibMulticaller {
             mstore(0x00, caller())
             let withSender := MULTICALLER_WITH_SENDER
             if eq(caller(), withSender) {
-                if iszero(staticcall(gas(), withSender, 0x00, 0x00, 0x00, 0x20)) {
+                if iszero(staticcall(gas(), withSender, gas(), 0x00, 0x00, 0x20)) {
+                    revert(0x00, 0x00) // For better gas estimation.
+                }
+            }
+            result := mload(0x00)
+        }
+    }
+
+    /**
+     * @dev Returns the caller of `aggregateWithSigner` on `MULTICALLER_WITH_SIGNER`,
+     *      if the current context's `msg.sender` is `MULTICALLER_WITH_SIGNER`.
+     *      Otherwise, returns `msg.sender`.
+     */
+    function signer() internal view returns (address result) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            mstore(0x00, caller())
+            let withSigner := MULTICALLER_WITH_SIGNER
+            if eq(caller(), withSigner) {
+                if iszero(staticcall(gas(), withSigner, gas(), 0x00, 0x00, 0x20)) {
                     revert(0x00, 0x00) // For better gas estimation.
                 }
             }
@@ -82,13 +111,13 @@ library LibMulticaller {
             mstore(0x00, caller())
             let withSender := MULTICALLER_WITH_SENDER
             if eq(caller(), withSender) {
-                if iszero(staticcall(gas(), withSender, 0x00, 0x00, 0x00, 0x20)) {
+                if iszero(staticcall(gas(), withSender, gas(), 0x00, 0x00, 0x20)) {
                     revert(0x00, 0x00) // For better gas estimation.
                 }
             }
             let withSigner := MULTICALLER_WITH_SIGNER
             if eq(caller(), withSigner) {
-                if iszero(staticcall(gas(), withSigner, 0x00, 0x00, 0x00, 0x20)) {
+                if iszero(staticcall(gas(), withSigner, gas(), 0x00, 0x00, 0x20)) {
                     revert(0x00, 0x00) // For better gas estimation.
                 }
             }

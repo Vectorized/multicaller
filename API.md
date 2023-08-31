@@ -311,7 +311,7 @@ Library to read the multicaller contracts.
 #### `MULTICALLER`
 ```solidity
 address internal constant MULTICALLER =
-    0x000000000000d991d267E53C7866fFA66DC2f61f;
+    0x000000000000FddAde488c25f238b061829fE2Bf;
 ```
 
 The address of the multicaller contract.
@@ -327,12 +327,21 @@ The address of the multicaller with sender contract.
 #### `MULTICALLER_WITH_SIGNER`
 ```solidity
 address internal constant MULTICALLER_WITH_SIGNER =
-    0x000000000000559d80632Dd9Ff96cac571Ab4068;
+    0x0000000000005A3a8e2D745f0cDdEDC90946Ab1a;
 ```
 
 The address of the multicaller with signer contract.
 
 ### Functions
+
+The functions in this library do NOT guard against reentrancy.
+
+A single transaction can recurse through different Multicallers  
+(e.g. `MulticallerWithSender -> contract -> MulticallerWithSigner -> contract`).
+
+Think of these functions like `msg.sender`.
+
+If your contract `C` can handle reentrancy safely with plain old `msg.sender` for any `A -> C -> B -> C`, you should be fine substituting `msg.sender` with these functions.
 
 #### `multicallerSender`
 ```solidity
@@ -355,6 +364,16 @@ function sender() internal view returns (address result)
 Returns the caller of `aggregateWithSender` on the multicaller with sender contract, if `msg.sender` is the multicaller with sender contract.
 
 Otherwise, returns `msg.sender`.
+
+
+#### `signer`
+```solidity
+function signer() internal view returns (address result)
+```  
+Returns the caller of `aggregateWithSigner` on the multicaller with signer contract, if `msg.sender` is the multicaller with signer contract.
+
+Otherwise, returns `msg.sender`.
+
 
 #### `senderOrSigner`
 ```solidity
