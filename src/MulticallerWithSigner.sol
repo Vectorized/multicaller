@@ -14,11 +14,15 @@ contract MulticallerWithSigner {
 
     /**
      * @dev Emitted when the `nonces` of `signer` are invalidated.
+     * @param signer The signer of the signature.
+     * @param nonces The array of nonces invalidated.
      */
     event NoncesInvalidated(address indexed signer, uint256[] nonces);
 
     /**
      * @dev Emitted when the nonce salt of `signer` is incremented.
+     * @param signer       The signer of the signature.
+     * @param newNonceSalt The new nonce salt.
      */
     event NonceSaltIncremented(address indexed signer, uint256 newNonceSalt);
 
