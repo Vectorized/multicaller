@@ -111,7 +111,9 @@ contract Multicaller {
                     // If `refundTo` is `address(1)`, replace it with the `msg.sender`.
                     refundTo := xor(refundTo, mul(eq(refundTo, 1), xor(refundTo, caller())))
                     // Transfer the ETH and check if it succeeded or not.
-                    if iszero(call(100000, refundTo, selfbalance(), gas(), 0x00, gas(), 0x00)) {
+                    if iszero(
+                        call(100000, refundTo, selfbalance(), codesize(), 0x00, codesize(), 0x00)
+                    ) {
                         mstore(0x00, refundTo) // Store the address in scratch space.
                         mstore8(0x0b, 0x73) // Opcode `PUSH20`.
                         mstore8(0x20, 0xff) // Opcode `SELFDESTRUCT`.
@@ -119,7 +121,7 @@ contract Multicaller {
                         // Compatible with `SENDALL`: https://eips.ethereum.org/EIPS/eip-4758
                         if iszero(create(selfbalance(), 0x0b, 0x16)) {
                             // Coerce gas estimation to provide enough gas for the `create` above.
-                            returndatacopy(gas(), returndatasize(), shr(20, gas()))
+                            revert(codesize(), codesize())
                         }
                     }
                 }
