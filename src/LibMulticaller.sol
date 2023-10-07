@@ -40,7 +40,7 @@ library LibMulticaller {
         assembly {
             mstore(0x00, 0x00)
             if iszero(staticcall(gas(), MULTICALLER_WITH_SENDER, codesize(), 0x00, 0x00, 0x20)) {
-                revert(0x00, 0x00) // For better gas estimation.
+                revert(codesize(), codesize()) // For better gas estimation.
             }
             result := mload(0x00)
         }
@@ -54,7 +54,7 @@ library LibMulticaller {
         assembly {
             mstore(0x00, 0x00)
             if iszero(staticcall(gas(), MULTICALLER_WITH_SIGNER, codesize(), 0x00, 0x00, 0x20)) {
-                revert(0x00, 0x00) // For better gas estimation.
+                revert(codesize(), codesize()) // For better gas estimation.
             }
             result := mload(0x00)
         }
@@ -72,7 +72,7 @@ library LibMulticaller {
             let withSender := MULTICALLER_WITH_SENDER
             if eq(caller(), withSender) {
                 if iszero(staticcall(gas(), withSender, codesize(), 0x00, 0x00, 0x20)) {
-                    revert(0x00, 0x00) // For better gas estimation.
+                    revert(codesize(), codesize()) // For better gas estimation.
                 }
             }
             result := mload(0x00)
@@ -91,7 +91,7 @@ library LibMulticaller {
             let withSigner := MULTICALLER_WITH_SIGNER
             if eq(caller(), withSigner) {
                 if iszero(staticcall(gas(), withSigner, codesize(), 0x00, 0x00, 0x20)) {
-                    revert(0x00, 0x00) // For better gas estimation.
+                    revert(codesize(), codesize()) // For better gas estimation.
                 }
             }
             result := mload(0x00)
@@ -112,13 +112,13 @@ library LibMulticaller {
             let withSender := MULTICALLER_WITH_SENDER
             if eq(caller(), withSender) {
                 if iszero(staticcall(gas(), withSender, codesize(), 0x00, 0x00, 0x20)) {
-                    revert(0x00, 0x00) // For better gas estimation.
+                    revert(codesize(), codesize()) // For better gas estimation.
                 }
             }
             let withSigner := MULTICALLER_WITH_SIGNER
             if eq(caller(), withSigner) {
                 if iszero(staticcall(gas(), withSigner, codesize(), 0x00, 0x00, 0x20)) {
-                    revert(0x00, 0x00) // For better gas estimation.
+                    revert(codesize(), codesize()) // For better gas estimation.
                 }
             }
             result := mload(0x00)
