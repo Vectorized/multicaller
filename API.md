@@ -311,7 +311,7 @@ Library to read the multicaller contracts.
 #### `MULTICALLER`
 ```solidity
 address internal constant MULTICALLER =
-    0x000000000000FddAde488c25f238b061829fE2Bf;
+    0x0000000000002Bdbf1Bf3279983603Ec279CC6dF;
 ```
 
 The address of the multicaller contract.

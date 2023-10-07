@@ -20,7 +20,7 @@ library LibMulticaller {
     /**
      * @dev The address of the multicaller contract.
      */
-    address internal constant MULTICALLER = 0x000000000000FddAde488c25f238b061829fE2Bf;
+    address internal constant MULTICALLER = 0x0000000000002Bdbf1Bf3279983603Ec279CC6dF;
 
     /**
      * @dev The address of the multicaller with sender contract.
@@ -39,7 +39,7 @@ library LibMulticaller {
         /// @solidity memory-safe-assembly
         assembly {
             mstore(0x00, 0x00)
-            if iszero(staticcall(gas(), MULTICALLER_WITH_SENDER, gas(), 0x00, 0x00, 0x20)) {
+            if iszero(staticcall(gas(), MULTICALLER_WITH_SENDER, codesize(), 0x00, 0x00, 0x20)) {
                 revert(0x00, 0x00) // For better gas estimation.
             }
             result := mload(0x00)
@@ -53,7 +53,7 @@ library LibMulticaller {
         /// @solidity memory-safe-assembly
         assembly {
             mstore(0x00, 0x00)
-            if iszero(staticcall(gas(), MULTICALLER_WITH_SIGNER, gas(), 0x00, 0x00, 0x20)) {
+            if iszero(staticcall(gas(), MULTICALLER_WITH_SIGNER, codesize(), 0x00, 0x00, 0x20)) {
                 revert(0x00, 0x00) // For better gas estimation.
             }
             result := mload(0x00)
@@ -71,7 +71,7 @@ library LibMulticaller {
             mstore(0x00, caller())
             let withSender := MULTICALLER_WITH_SENDER
             if eq(caller(), withSender) {
-                if iszero(staticcall(gas(), withSender, gas(), 0x00, 0x00, 0x20)) {
+                if iszero(staticcall(gas(), withSender, codesize(), 0x00, 0x00, 0x20)) {
                     revert(0x00, 0x00) // For better gas estimation.
                 }
             }
@@ -90,7 +90,7 @@ library LibMulticaller {
             mstore(0x00, caller())
             let withSigner := MULTICALLER_WITH_SIGNER
             if eq(caller(), withSigner) {
-                if iszero(staticcall(gas(), withSigner, gas(), 0x00, 0x00, 0x20)) {
+                if iszero(staticcall(gas(), withSigner, codesize(), 0x00, 0x00, 0x20)) {
                     revert(0x00, 0x00) // For better gas estimation.
                 }
             }
@@ -111,13 +111,13 @@ library LibMulticaller {
             mstore(0x00, caller())
             let withSender := MULTICALLER_WITH_SENDER
             if eq(caller(), withSender) {
-                if iszero(staticcall(gas(), withSender, gas(), 0x00, 0x00, 0x20)) {
+                if iszero(staticcall(gas(), withSender, codesize(), 0x00, 0x00, 0x20)) {
                     revert(0x00, 0x00) // For better gas estimation.
                 }
             }
             let withSigner := MULTICALLER_WITH_SIGNER
             if eq(caller(), withSigner) {
-                if iszero(staticcall(gas(), withSigner, gas(), 0x00, 0x00, 0x20)) {
+                if iszero(staticcall(gas(), withSigner, codesize(), 0x00, 0x00, 0x20)) {
                     revert(0x00, 0x00) // For better gas estimation.
                 }
             }
