@@ -5,12 +5,22 @@ pragma solidity ^0.8.4;
  * @title LibMulticaller
  * @author vectorized.eth
  * @notice Library to read the `msg.sender` of the multicaller with sender contract.
+ *
+ * @dev Note:
+ * The functions in this library do NOT guard against reentrancy.
+ * A single transaction can recurse through different Multicallers
+ * (e.g. `MulticallerWithSender -> contract -> MulticallerWithSigner -> contract`).
+ *
+ * Think of these functions like `msg.sender`.
+ *
+ * If your contract `C` can handle reentrancy safely with plain old `msg.sender`
+ * for any `A -> C -> B -> C`, you should be fine substituting `msg.sender` with these functions.
  */
 library LibMulticaller {
     /**
      * @dev The address of the multicaller contract.
      */
-    address internal constant MULTICALLER = 0x000000000088228fCF7b8af41Faf3955bD0B3A41;
+    address internal constant MULTICALLER = 0x0000000000002Bdbf1Bf3279983603Ec279CC6dF;
 
     /**
      * @dev The address of the multicaller with sender contract.
@@ -18,23 +28,35 @@ library LibMulticaller {
     address internal constant MULTICALLER_WITH_SENDER = 0x00000000002Fd5Aeb385D324B580FCa7c83823A0;
 
     /**
+     * @dev The address of the multicaller with signer contract.
+     */
+    address internal constant MULTICALLER_WITH_SIGNER = 0x0000000000005e17F9eA3651537Cffda3946E0be;
+
+    /**
      * @dev Returns the caller of `aggregateWithSender` on `MULTICALLER_WITH_SENDER`.
      */
     function multicallerSender() internal view returns (address result) {
         /// @solidity memory-safe-assembly
         assembly {
-            if iszero(
-                staticcall(
-                    gas(), // Remaining gas.
-                    MULTICALLER_WITH_SENDER, // The multicaller.
-                    0x00, // Start of calldata in memory.
-                    0x00, // Length of calldata.
-                    0x00, // Start of returndata in memory.
-                    0x20 // Length of returndata.
-                )
-            ) { revert(0, 0) } // For better gas estimation.
+            mstore(0x00, 0x00)
+            if iszero(staticcall(gas(), MULTICALLER_WITH_SENDER, codesize(), 0x00, 0x00, 0x20)) {
+                revert(codesize(), codesize()) // For better gas estimation.
+            }
+            result := mload(0x00)
+        }
+    }
 
-            result := mul(mload(0x00), eq(returndatasize(), 0x20))
+    /**
+     * @dev Returns the signer of `aggregateWithSigner` on `MULTICALLER_WITH_SIGNER`.
+     */
+    function multicallerSigner() internal view returns (address result) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            mstore(0x00, 0x00)
+            if iszero(staticcall(gas(), MULTICALLER_WITH_SIGNER, codesize(), 0x00, 0x00, 0x20)) {
+                revert(codesize(), codesize()) // For better gas estimation.
+            }
+            result := mload(0x00)
         }
     }
 
@@ -46,21 +68,60 @@ library LibMulticaller {
     function sender() internal view returns (address result) {
         /// @solidity memory-safe-assembly
         assembly {
-            result := caller()
-            if eq(result, MULTICALLER_WITH_SENDER) {
-                if iszero(
-                    staticcall(
-                        gas(), // Remaining gas.
-                        MULTICALLER_WITH_SENDER, // The multicaller with sender.
-                        0x00, // Start of calldata in memory.
-                        0x00, // Length of calldata.
-                        0x00, // Start of returndata in memory.
-                        0x20 // Length of returndata.
-                    )
-                ) { revert(0, 0) } // For better gas estimation.
-
-                result := mul(mload(0x00), eq(returndatasize(), 0x20))
+            mstore(0x00, caller())
+            let withSender := MULTICALLER_WITH_SENDER
+            if eq(caller(), withSender) {
+                if iszero(staticcall(gas(), withSender, codesize(), 0x00, 0x00, 0x20)) {
+                    revert(codesize(), codesize()) // For better gas estimation.
+                }
             }
+            result := mload(0x00)
+        }
+    }
+
+    /**
+     * @dev Returns the caller of `aggregateWithSigner` on `MULTICALLER_WITH_SIGNER`,
+     *      if the current context's `msg.sender` is `MULTICALLER_WITH_SIGNER`.
+     *      Otherwise, returns `msg.sender`.
+     */
+    function signer() internal view returns (address result) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            mstore(0x00, caller())
+            let withSigner := MULTICALLER_WITH_SIGNER
+            if eq(caller(), withSigner) {
+                if iszero(staticcall(gas(), withSigner, codesize(), 0x00, 0x00, 0x20)) {
+                    revert(codesize(), codesize()) // For better gas estimation.
+                }
+            }
+            result := mload(0x00)
+        }
+    }
+
+    /**
+     * @dev Returns the caller of `aggregateWithSender` on `MULTICALLER_WITH_SENDER`,
+     *      if the current context's `msg.sender` is `MULTICALLER_WITH_SENDER`.
+     *      Returns the signer of `aggregateWithSigner` on `MULTICALLER_WITH_SIGNER`,
+     *      if the current context's `msg.sender` is `MULTICALLER_WITH_SIGNER`.
+     *      Otherwise, returns `msg.sender`.
+     */
+    function senderOrSigner() internal view returns (address result) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            mstore(0x00, caller())
+            let withSender := MULTICALLER_WITH_SENDER
+            if eq(caller(), withSender) {
+                if iszero(staticcall(gas(), withSender, codesize(), 0x00, 0x00, 0x20)) {
+                    revert(codesize(), codesize()) // For better gas estimation.
+                }
+            }
+            let withSigner := MULTICALLER_WITH_SIGNER
+            if eq(caller(), withSigner) {
+                if iszero(staticcall(gas(), withSigner, codesize(), 0x00, 0x00, 0x20)) {
+                    revert(codesize(), codesize()) // For better gas estimation.
+                }
+            }
+            result := mload(0x00)
         }
     }
 }
