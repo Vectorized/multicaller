@@ -2,13 +2,14 @@
 
 [![NPM][npm-shield]][npm-url]
 [![CI][ci-shield]][ci-url]
-[![MIT License][license-shield]][license-url]
 
 Efficiently call multiple contracts in a single transaction.
 
 Enables "forwarding" of `msg.sender` to the contracts called.
 
 ## Deployments
+
+Please open an issue if you need help to deploy to an EVM chain of your choice.
 
 - Ethereum 
   - Multicaller: [`0x0000000000002Bdbf1Bf3279983603Ec279CC6dF`](https://etherscan.io/address/0x0000000000002Bdbf1Bf3279983603Ec279CC6dF)
@@ -38,8 +39,6 @@ Enables "forwarding" of `msg.sender` to the contracts called.
   - Multicaller: [`0x0000000000002Bdbf1Bf3279983603Ec279CC6dF`](https://arbiscan.io/address/0x0000000000002Bdbf1Bf3279983603Ec279CC6dF)
   - MulticallerWithSender: [`0x00000000002Fd5Aeb385D324B580FCa7c83823A0`](https://arbiscan.io/address/0x00000000002Fd5Aeb385D324B580FCa7c83823A0)
   - MulticallerWithSigner: [`0x0000000000005e17F9eA3651537Cffda3946E0be`](https://arbiscan.io/address/0x0000000000005e17F9eA3651537Cffda3946E0be)
-
-Please open an issue if you need help to deploy to an EVM chain of your choice.
 
 ## Contracts
 
@@ -71,18 +70,15 @@ npm install multicaller
 
 [The API docs](API.md).
 
-
 ## Design
 
 The contracts are designed with a priority on efficiency and minimalism. 
 
-- Multiple input calldata arrays instead of an array of structs for more compact calldata encoding.
-
-- Omission of utility functions like `getBlockNumber` for more efficient function dispatch. If you need those functions, just add those functions into your contract, or read them off a separate utility contract like [MakerDao's Multicall](https://github.com/makerdao/multicall).
-
 ## Safety
 
 We **do not give any warranties** and **will not be liable for any loss** incurred through any use of this codebase.
+
+Please read the API docs / Natspec, test with your code, and get additional security reviews to make sure that any usage is done safely.
 
 ## Acknowledgments
 
@@ -100,7 +96,3 @@ We would like to thank our [reviewers and contributors](credits.txt) for their i
 
 [ci-shield]: https://img.shields.io/github/actions/workflow/status/vectorized/multicaller/ci.yml?label=build&branch=main
 [ci-url]: https://github.com/vectorized/multicaller/actions/workflows/ci.yml
-
-[license-shield]: https://img.shields.io/badge/License-MIT-green.svg
-[license-url]: https://github.com/vectorized/multicaller/blob/main/LICENSE.txt
- 
