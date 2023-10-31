@@ -123,7 +123,7 @@ contract MulticallerTest is TestPlus {
         // Uncomment as needed to test the source files directly:
         // _etchMulticaller();
         // _etchMulticallerWithSender();
-        // _etchMulticallerWithSigner();
+        _etchMulticallerWithSigner();
 
         _deployTargets();
     }
@@ -460,8 +460,9 @@ contract MulticallerTest is TestPlus {
                     keccak256(
                         abi.encode(
                             keccak256(
-                                "AggregateWithSigner(address[] targets,bytes[] data,uint256[] values,uint256 nonce,uint256 nonceSalt)"
+                                "AggregateWithSigner(address signer,address[] targets,bytes[] data,uint256[] values,uint256 nonce,uint256 nonceSalt)"
                             ),
+                            t.signer,
                             keccak256(abi.encodePacked(t.targets)),
                             keccak256(abi.encodePacked(dataHashes)),
                             keccak256(abi.encodePacked(t.values)),
@@ -925,7 +926,10 @@ contract MulticallerTest is TestPlus {
                 _multicallerWithSignerDomainSeparator(),
                 keccak256(
                     abi.encode(
-                        keccak256("InvalidateNoncesForSigner(uint256[] nonces,uint256 nonceSalt)"),
+                        keccak256(
+                            "InvalidateNoncesForSigner(address signer,uint256[] nonces,uint256 nonceSalt)"
+                        ),
+                        signer,
                         keccak256(abi.encodePacked(nonces)),
                         multicallerWithSigner.nonceSaltOf(signer)
                     )
@@ -946,7 +950,8 @@ contract MulticallerTest is TestPlus {
                 _multicallerWithSignerDomainSeparator(),
                 keccak256(
                     abi.encode(
-                        keccak256("IncrementNonceSaltForSigner(uint256 nonceSalt)"),
+                        keccak256("IncrementNonceSaltForSigner(address signer,uint256 nonceSalt)"),
+                        signer,
                         multicallerWithSigner.nonceSaltOf(signer)
                     )
                 )

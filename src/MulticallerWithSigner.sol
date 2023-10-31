@@ -48,26 +48,26 @@ contract MulticallerWithSigner {
     /**
      * @dev For EIP-712 signature digest calculation for the
      *      `aggregateWithSigner` function.
-     *      `keccak256("AggregateWithSigner(address[] targets,bytes[] data,uint256[] values,uint256 nonce,uint256 nonceSalt)")`.
+     *      `keccak256("AggregateWithSigner(address signer,address[] targets,bytes[] data,uint256[] values,uint256 nonce,uint256 nonceSalt)")`.
      */
     bytes32 private constant _AGGREGATE_WITH_SIGNER_TYPEHASH =
-        0x7d4195b902a78aa23ae8c64d4cecdf8424f3171e7c7e34ed94e6fab3efd018ab;
+        0xfb989fd34c8af81a76f18167f528fc7315f92cacc19a0e63215abd54633f8a28;
 
     /**
      * @dev For EIP-712 signature digest calculation for the
      *      `invalidateNoncesForSigner` function.
-     *      `keccak256("InvalidateNoncesForSigner(uint256[] nonces,uint256 nonceSalt)")`.
+     *      `keccak256("InvalidateNoncesForSigner(address signer,uint256[] nonces,uint256 nonceSalt)")`.
      */
     bytes32 private constant _INVALIDATE_NONCES_FOR_SIGNER_TYPEHASH =
-        0xe75b4aefef1358e66ac7ed2f180022e0a7f661dcd2781630ce58e05bb8bdb1c1;
+        0x12b047058eea3df4085cdc159a103d9c100c4e78cfb7029cc39d02cb8b9e48f5;
 
     /**
      * @dev For EIP-712 signature digest calculation for the
      *      `incrementNonceSaltForSigner` function.
-     *      `keccak256("IncrementNonceSaltForSigner(uint256 nonceSalt)")`.
+     *      `keccak256("IncrementNonceSaltForSigner(address signer,uint256 nonceSalt)")`.
      */
     bytes32 private constant _INCREMENT_NONCE_SALT_FOR_SIGNER_TYPEHASH =
-        0x898da98c106c91ce6f05405740b0ed23b5c4dc847a0dd1996fb93189d8310bef;
+        0xfa181078c7d1d4d369301511d3c5611e9367d0cebbf65eefdee9dfc75849c1d3;
 
     /**
      * @dev For EIP-712 signature digest calculation.
@@ -194,12 +194,13 @@ contract MulticallerWithSigner {
 
             // Layout the fields of the struct hash.
             mstore(returndatasize(), _AGGREGATE_WITH_SIGNER_TYPEHASH)
-            mstore(0x20, targetsHash)
-            mstore(0x40, dataHash)
-            mstore(0x60, valuesHash)
-            mstore(0x80, nonce)
-            mstore(0xa0, sload(add(signer, address()))) // Store the nonce salt.
-            mstore(0x40, keccak256(returndatasize(), 0xc0)) // Compute and store the struct hash.
+            mstore(0x20, signer)
+            mstore(0x40, targetsHash)
+            mstore(0x60, dataHash)
+            mstore(0x80, valuesHash)
+            mstore(0xa0, nonce)
+            mstore(0xc0, sload(add(signer, address()))) // Store the nonce salt.
+            mstore(0x40, keccak256(returndatasize(), 0xe0)) // Compute and store the struct hash.
             // Layout the fields of the domain separator.
             mstore(0x60, _DOMAIN_TYPEHASH)
             mstore(0x80, _NAME_HASH)
@@ -362,11 +363,12 @@ contract MulticallerWithSigner {
             let end := shl(5, nonces.length)
             // Layout the fields of the struct hash.
             mstore(returndatasize(), _INVALIDATE_NONCES_FOR_SIGNER_TYPEHASH)
+            mstore(0x20, signer)
             // Compute and store `keccak256(abi.encodePacked(nonces))`.
-            calldatacopy(0x20, nonces.offset, end)
-            mstore(0x20, keccak256(0x20, end))
-            mstore(0x40, sload(add(signer, address()))) // Store the nonce salt.
-            mstore(0x40, keccak256(returndatasize(), 0x60)) // Compute and store the struct hash.
+            calldatacopy(0x40, nonces.offset, end)
+            mstore(0x40, keccak256(0x40, end))
+            mstore(0x60, sload(add(signer, address()))) // Store the nonce salt.
+            mstore(0x40, keccak256(returndatasize(), 0x80)) // Compute and store the struct hash.
             // Layout the fields of the domain separator.
             mstore(0x60, _DOMAIN_TYPEHASH)
             mstore(0x80, _NAME_HASH)
@@ -483,8 +485,9 @@ contract MulticallerWithSigner {
             let nonceSalt := sload(nonceSaltSlot)
             // Layout the fields of the struct hash.
             mstore(returndatasize(), _INCREMENT_NONCE_SALT_FOR_SIGNER_TYPEHASH)
-            mstore(0x20, nonceSalt) // Store the nonce salt.
-            mstore(0x40, keccak256(returndatasize(), 0x40)) // Compute and store the struct hash.
+            mstore(0x20, signer)
+            mstore(0x40, nonceSalt) // Store the nonce salt.
+            mstore(0x40, keccak256(returndatasize(), 0x60)) // Compute and store the struct hash.
             // Layout the fields of the domain separator.
             mstore(0x60, _DOMAIN_TYPEHASH)
             mstore(0x80, _NAME_HASH)
