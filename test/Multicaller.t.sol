@@ -123,7 +123,7 @@ contract MulticallerTest is TestPlus {
         // Uncomment as needed to test the source files directly:
         // _etchMulticaller();
         // _etchMulticallerWithSender();
-        _etchMulticallerWithSigner();
+        // _etchMulticallerWithSigner();
 
         _deployTargets();
     }
