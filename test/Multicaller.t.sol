@@ -123,7 +123,7 @@ contract MulticallerTest is TestPlus {
         // Uncomment as needed to test the source files directly:
         // _etchMulticaller();
         // _etchMulticallerWithSender();
-        // _etchMulticallerWithSigner();
+        _etchMulticallerWithSigner();
 
         _deployTargets();
     }
@@ -754,7 +754,7 @@ contract MulticallerTest is TestPlus {
         returns (bytes[] memory results)
     {
         results = multicallerWithSigner.aggregateWithSigner{value: value}(
-            t.targets, t.data, t.values, t.nonce, t.signer, t.signature
+            t.targets, t.data, t.values, t.nonce, t.signer, _maybeMake2098(t.signature)
         );
     }
 
@@ -817,7 +817,9 @@ contract MulticallerTest is TestPlus {
                     _generateInvalidateNoncesSignature(nonces, signer, privateKey);
                 vm.expectEmit(true, true, true, true);
                 emit NoncesInvalidated(signer, nonces);
-                multicallerWithSigner.invalidateNoncesForSigner(nonces, signer, signature);
+                multicallerWithSigner.invalidateNoncesForSigner(
+                    nonces, signer, _maybeMake2098(signature)
+                );
             }
 
             invalidated = multicallerWithSigner.noncesInvalidated(signer, nonces);
@@ -862,14 +864,20 @@ contract MulticallerTest is TestPlus {
                 _generateInvalidateNoncesSignature(nonces, erc1271Wallet, erc721SignerPrivateKey);
 
             vm.expectRevert(MulticallerWithSigner.InvalidSignature.selector);
-            multicallerWithSigner.invalidateNoncesForSigner(nonces, erc1271Malicious, signature);
+            multicallerWithSigner.invalidateNoncesForSigner(
+                nonces, erc1271Malicious, _maybeMake2098(signature)
+            );
 
             vm.expectEmit(true, true, true, true);
             emit NoncesInvalidated(erc1271Wallet, nonces);
-            multicallerWithSigner.invalidateNoncesForSigner(nonces, erc1271Wallet, signature);
+            multicallerWithSigner.invalidateNoncesForSigner(
+                nonces, erc1271Wallet, _maybeMake2098(signature)
+            );
 
             vm.expectRevert(MulticallerWithSigner.InvalidSignature.selector);
-            multicallerWithSigner.invalidateNoncesForSigner(nonces, erc1271Malicious, signature);
+            multicallerWithSigner.invalidateNoncesForSigner(
+                nonces, erc1271Malicious, _maybeMake2098(signature)
+            );
         }
     }
 
@@ -888,10 +896,10 @@ contract MulticallerTest is TestPlus {
                 bytes memory signature = _generateIncrementNonceSaltSignature(signer, privateKey);
                 vm.expectEmit(true, true, true, true);
                 emit NonceSaltIncremented(signer, nextNonceSalt);
-                multicallerWithSigner.incrementNonceSaltForSigner(signer, signature);
+                multicallerWithSigner.incrementNonceSaltForSigner(signer, _maybeMake2098(signature));
 
                 vm.expectRevert(MulticallerWithSigner.InvalidSignature.selector);
-                multicallerWithSigner.incrementNonceSaltForSigner(signer, signature);
+                multicallerWithSigner.incrementNonceSaltForSigner(signer, _maybeMake2098(signature));
             }
             uint256 nonceSaltAfter = multicallerWithSigner.nonceSaltOf(signer);
             assertEq(nextNonceSalt, nonceSaltAfter);
@@ -906,13 +914,15 @@ contract MulticallerTest is TestPlus {
             _generateIncrementNonceSaltSignature(erc1271Wallet, erc721SignerPrivateKey);
 
         vm.expectRevert(MulticallerWithSigner.InvalidSignature.selector);
-        multicallerWithSigner.incrementNonceSaltForSigner(erc1271Malicious, signature);
+        multicallerWithSigner.incrementNonceSaltForSigner(
+            erc1271Malicious, _maybeMake2098(signature)
+        );
 
         emit NonceSaltIncremented(erc1271Wallet, nextNonceSalt);
-        multicallerWithSigner.incrementNonceSaltForSigner(erc1271Wallet, signature);
+        multicallerWithSigner.incrementNonceSaltForSigner(erc1271Wallet, _maybeMake2098(signature));
 
         vm.expectRevert(MulticallerWithSigner.InvalidSignature.selector);
-        multicallerWithSigner.incrementNonceSaltForSigner(erc1271Wallet, signature);
+        multicallerWithSigner.incrementNonceSaltForSigner(erc1271Wallet, _maybeMake2098(signature));
     }
 
     function _generateInvalidateNoncesSignature(
@@ -975,6 +985,27 @@ contract MulticallerTest is TestPlus {
         );
     }
 
+    function _maybeMake2098(bytes memory signature)
+        internal
+        returns (bytes memory shortSignature)
+    {
+        if (_random() % 2 == 0 || signature.length != 65) {
+            shortSignature = signature;
+        } else {
+            /// @solidity memory-safe-assembly
+            assembly {
+                let r := mload(add(signature, 0x20))
+                let s := mload(add(signature, 0x40))
+                let v := byte(0, mload(add(signature, 0x60)))
+                shortSignature := mload(0x40)
+                mstore(shortSignature, 0x40)
+                mstore(add(shortSignature, 0x20), r)
+                mstore(add(shortSignature, 0x40), or(shl(255, sub(v, 27)), s))
+                mstore(0x40, add(shortSignature, 0x60))
+            }
+        }
+    }
+
     function testOffsetTrick(uint256 a, uint256 b, uint256 c) public {
         unchecked {
             uint256 aDiff = a - c;
@@ -990,6 +1021,7 @@ contract MulticallerTest is TestPlus {
     }
 
     function testNastyCalldataRevert() public {
+        /// @solidity memory-safe-assembly
         assembly {
             let m := mload(0x40)
 

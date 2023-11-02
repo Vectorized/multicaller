@@ -212,6 +212,15 @@ contract MulticallerWithSigner {
             mstore(returndatasize(), 0x1901) // Store "\x19\x01".
             let digest := keccak256(0x1e, 0x42) // Compute the digest.
             let signatureIsValid := 0
+            if eq(signature.length, 64) {
+                mstore(returndatasize(), digest) // Store the digest.
+                let vs := calldataload(add(signature.offset, 0x20))
+                mstore(0x20, add(shr(255, vs), 27)) // `v`.
+                mstore(0x40, calldataload(signature.offset)) // `r`.
+                mstore(0x60, shr(1, shl(1, vs))) // `s`.
+                let t := staticcall(gas(), 1, 0x00, 0x80, 0x01, 0x20)
+                signatureIsValid := mul(returndatasize(), eq(signer, mload(t)))
+            }
             if eq(signature.length, 65) {
                 mstore(returndatasize(), digest) // Store the digest.
                 calldatacopy(0x40, signature.offset, signature.length) // Copy `r`, `s`, `v`.
@@ -380,6 +389,15 @@ contract MulticallerWithSigner {
             mstore(returndatasize(), 0x1901) // Store "\x19\x01".
             let digest := keccak256(0x1e, 0x42) // Compute the digest.
             let signatureIsValid := 0
+            if eq(signature.length, 64) {
+                mstore(returndatasize(), digest) // Store the digest.
+                let vs := calldataload(add(signature.offset, 0x20))
+                mstore(0x20, add(shr(255, vs), 27)) // `v`.
+                mstore(0x40, calldataload(signature.offset)) // `r`.
+                mstore(0x60, shr(1, shl(1, vs))) // `s`.
+                let t := staticcall(gas(), 1, 0x00, 0x80, 0x01, 0x20)
+                signatureIsValid := mul(returndatasize(), eq(signer, mload(t)))
+            }
             if eq(signature.length, 65) {
                 mstore(returndatasize(), digest) // Store the digest.
                 calldatacopy(0x40, signature.offset, signature.length) // Copy `r`, `s`, `v`.
@@ -499,6 +517,15 @@ contract MulticallerWithSigner {
             mstore(returndatasize(), 0x1901) // Store "\x19\x01".
             let digest := keccak256(0x1e, 0x42) // Compute the digest.
             let signatureIsValid := 0
+            if eq(signature.length, 64) {
+                mstore(returndatasize(), digest) // Store the digest.
+                let vs := calldataload(add(signature.offset, 0x20))
+                mstore(0x20, add(shr(255, vs), 27)) // `v`.
+                mstore(0x40, calldataload(signature.offset)) // `r`.
+                mstore(0x60, shr(1, shl(1, vs))) // `s`.
+                let t := staticcall(gas(), 1, 0x00, 0x80, 0x01, 0x20)
+                signatureIsValid := mul(returndatasize(), eq(signer, mload(t)))
+            }
             if eq(signature.length, 65) {
                 mstore(returndatasize(), digest) // Store the digest.
                 calldatacopy(0x40, signature.offset, signature.length) // Copy `r`, `s`, `v`.
