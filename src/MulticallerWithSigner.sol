@@ -211,25 +211,24 @@ contract MulticallerWithSigner {
             // Layout the fields of `ecrecover`.
             mstore(returndatasize(), 0x1901) // Store "\x19\x01".
             let digest := keccak256(0x1e, 0x42) // Compute the digest.
-            let signatureIsValid := 0
-            if eq(signature.length, 64) {
-                mstore(returndatasize(), digest) // Store the digest.
-                let vs := calldataload(add(signature.offset, 0x20))
-                mstore(0x20, add(shr(255, vs), 27)) // `v`.
-                mstore(0x40, calldataload(signature.offset)) // `r`.
-                mstore(0x60, shr(1, shl(1, vs))) // `s`.
-                let t := staticcall(gas(), 1, 0x00, 0x80, 0x01, 0x20)
-                signatureIsValid := mul(returndatasize(), eq(signer, mload(t)))
-            }
-            if eq(signature.length, 65) {
-                mstore(returndatasize(), digest) // Store the digest.
-                calldatacopy(0x40, signature.offset, signature.length) // Copy `r`, `s`, `v`.
-                mstore(0x20, byte(returndatasize(), mload(0x80))) // `v`.
-                let t := staticcall(gas(), 1, 0x00, 0x80, 0x01, 0x20)
-                signatureIsValid := mul(returndatasize(), eq(signer, mload(t)))
-            }
-            // ERC1271 fallback.
-            if iszero(signatureIsValid) {
+            for {} 1 {} {
+                if eq(signature.length, 64) {
+                    mstore(returndatasize(), digest) // Store the digest.
+                    let vs := calldataload(add(signature.offset, 0x20))
+                    mstore(0x20, add(shr(255, vs), 27)) // `v`.
+                    mstore(0x40, calldataload(signature.offset)) // `r`.
+                    mstore(0x60, shr(1, shl(1, vs))) // `s`.
+                    let t := staticcall(gas(), 1, 0x00, 0x80, 0x01, 0x20)
+                    if iszero(or(iszero(returndatasize()), xor(signer, mload(t)))) { break }
+                }
+                if eq(signature.length, 65) {
+                    mstore(returndatasize(), digest) // Store the digest.
+                    calldatacopy(0x40, signature.offset, signature.length) // Copy `r`, `s`, `v`.
+                    mstore(0x20, byte(returndatasize(), mload(0x80))) // `v`.
+                    let t := staticcall(gas(), 1, 0x00, 0x80, 0x01, 0x20)
+                    if iszero(or(iszero(returndatasize()), xor(signer, mload(t)))) { break }
+                }
+                // ERC1271 fallback.
                 let f := shl(224, 0x1626ba7e) // `isValidSignature(bytes32,bytes)`.
                 mstore(0x00, f)
                 mstore(0x04, digest)
@@ -237,7 +236,11 @@ contract MulticallerWithSigner {
                 mstore(0x44, signature.length)
                 calldatacopy(0x64, signature.offset, signature.length)
                 let t := staticcall(gas(), signer, 0x00, add(signature.length, 0x64), 0x24, 0x20)
-                signatureIsValid := and(eq(mload(0x24), f), t)
+                if iszero(and(eq(mload(0x24), f), t)) {
+                    mstore(0x00, 0x8baa579f) // `InvalidSignature()`.
+                    revert(0x1c, 0x04)
+                }
+                break
             }
 
             // Check the nonce.
@@ -246,7 +249,7 @@ contract MulticallerWithSigner {
             let bucketSlot := keccak256(0x20, 0x3f)
             let bucketValue := sload(bucketSlot)
             let bit := shl(and(0xff, nonce), 1)
-            if or(iszero(signatureIsValid), and(bit, bucketValue)) {
+            if and(bit, bucketValue) {
                 mstore(0x00, 0x8baa579f) // `InvalidSignature()`.
                 revert(0x1c, 0x04)
             }
@@ -388,25 +391,24 @@ contract MulticallerWithSigner {
             // Layout the fields of `ecrecover`.
             mstore(returndatasize(), 0x1901) // Store "\x19\x01".
             let digest := keccak256(0x1e, 0x42) // Compute the digest.
-            let signatureIsValid := 0
-            if eq(signature.length, 64) {
-                mstore(returndatasize(), digest) // Store the digest.
-                let vs := calldataload(add(signature.offset, 0x20))
-                mstore(0x20, add(shr(255, vs), 27)) // `v`.
-                mstore(0x40, calldataload(signature.offset)) // `r`.
-                mstore(0x60, shr(1, shl(1, vs))) // `s`.
-                let t := staticcall(gas(), 1, 0x00, 0x80, 0x01, 0x20)
-                signatureIsValid := mul(returndatasize(), eq(signer, mload(t)))
-            }
-            if eq(signature.length, 65) {
-                mstore(returndatasize(), digest) // Store the digest.
-                calldatacopy(0x40, signature.offset, signature.length) // Copy `r`, `s`, `v`.
-                mstore(0x20, byte(returndatasize(), mload(0x80))) // `v`.
-                let t := staticcall(gas(), 1, 0x00, 0x80, 0x01, 0x20)
-                signatureIsValid := mul(returndatasize(), eq(signer, mload(t)))
-            }
-            // ERC1271 fallback.
-            if iszero(signatureIsValid) {
+            for {} 1 {} {
+                if eq(signature.length, 64) {
+                    mstore(returndatasize(), digest) // Store the digest.
+                    let vs := calldataload(add(signature.offset, 0x20))
+                    mstore(0x20, add(shr(255, vs), 27)) // `v`.
+                    mstore(0x40, calldataload(signature.offset)) // `r`.
+                    mstore(0x60, shr(1, shl(1, vs))) // `s`.
+                    let t := staticcall(gas(), 1, 0x00, 0x80, 0x01, 0x20)
+                    if iszero(or(iszero(returndatasize()), xor(signer, mload(t)))) { break }
+                }
+                if eq(signature.length, 65) {
+                    mstore(returndatasize(), digest) // Store the digest.
+                    calldatacopy(0x40, signature.offset, signature.length) // Copy `r`, `s`, `v`.
+                    mstore(0x20, byte(returndatasize(), mload(0x80))) // `v`.
+                    let t := staticcall(gas(), 1, 0x00, 0x80, 0x01, 0x20)
+                    if iszero(or(iszero(returndatasize()), xor(signer, mload(t)))) { break }
+                }
+                // ERC1271 fallback.
                 let f := shl(224, 0x1626ba7e) // `isValidSignature(bytes32,bytes)`.
                 mstore(0x00, f)
                 mstore(0x04, digest)
@@ -414,11 +416,11 @@ contract MulticallerWithSigner {
                 mstore(0x44, signature.length)
                 calldatacopy(0x64, signature.offset, signature.length)
                 let t := staticcall(gas(), signer, 0x00, add(signature.length, 0x64), 0x24, 0x20)
-                signatureIsValid := and(eq(mload(0x24), f), t)
-            }
-            if iszero(signatureIsValid) {
-                mstore(0x00, 0x8baa579f) // `InvalidSignature()`.
-                revert(0x1c, 0x04)
+                if iszero(and(eq(mload(0x24), f), t)) {
+                    mstore(0x00, 0x8baa579f) // `InvalidSignature()`.
+                    revert(0x1c, 0x04)
+                }
+                break
             }
 
             mstore(0x00, signer)
@@ -516,25 +518,24 @@ contract MulticallerWithSigner {
             // Layout the fields of `ecrecover`.
             mstore(returndatasize(), 0x1901) // Store "\x19\x01".
             let digest := keccak256(0x1e, 0x42) // Compute the digest.
-            let signatureIsValid := 0
-            if eq(signature.length, 64) {
-                mstore(returndatasize(), digest) // Store the digest.
-                let vs := calldataload(add(signature.offset, 0x20))
-                mstore(0x20, add(shr(255, vs), 27)) // `v`.
-                mstore(0x40, calldataload(signature.offset)) // `r`.
-                mstore(0x60, shr(1, shl(1, vs))) // `s`.
-                let t := staticcall(gas(), 1, 0x00, 0x80, 0x01, 0x20)
-                signatureIsValid := mul(returndatasize(), eq(signer, mload(t)))
-            }
-            if eq(signature.length, 65) {
-                mstore(returndatasize(), digest) // Store the digest.
-                calldatacopy(0x40, signature.offset, signature.length) // Copy `r`, `s`, `v`.
-                mstore(0x20, byte(returndatasize(), mload(0x80))) // `v`.
-                let t := staticcall(gas(), 1, 0x00, 0x80, 0x01, 0x20)
-                signatureIsValid := mul(returndatasize(), eq(signer, mload(t)))
-            }
-            // ERC1271 fallback.
-            if iszero(signatureIsValid) {
+            for {} 1 {} {
+                if eq(signature.length, 64) {
+                    mstore(returndatasize(), digest) // Store the digest.
+                    let vs := calldataload(add(signature.offset, 0x20))
+                    mstore(0x20, add(shr(255, vs), 27)) // `v`.
+                    mstore(0x40, calldataload(signature.offset)) // `r`.
+                    mstore(0x60, shr(1, shl(1, vs))) // `s`.
+                    let t := staticcall(gas(), 1, 0x00, 0x80, 0x01, 0x20)
+                    if iszero(or(iszero(returndatasize()), xor(signer, mload(t)))) { break }
+                }
+                if eq(signature.length, 65) {
+                    mstore(returndatasize(), digest) // Store the digest.
+                    calldatacopy(0x40, signature.offset, signature.length) // Copy `r`, `s`, `v`.
+                    mstore(0x20, byte(returndatasize(), mload(0x80))) // `v`.
+                    let t := staticcall(gas(), 1, 0x00, 0x80, 0x01, 0x20)
+                    if iszero(or(iszero(returndatasize()), xor(signer, mload(t)))) { break }
+                }
+                // ERC1271 fallback.
                 let f := shl(224, 0x1626ba7e) // `isValidSignature(bytes32,bytes)`.
                 mstore(0x00, f)
                 mstore(0x04, digest)
@@ -542,11 +543,11 @@ contract MulticallerWithSigner {
                 mstore(0x44, signature.length)
                 calldatacopy(0x64, signature.offset, signature.length)
                 let t := staticcall(gas(), signer, 0x00, add(signature.length, 0x64), 0x24, 0x20)
-                signatureIsValid := and(eq(mload(0x24), f), t)
-            }
-            if iszero(signatureIsValid) {
-                mstore(0x00, 0x8baa579f) // `InvalidSignature()`.
-                revert(0x1c, 0x04)
+                if iszero(and(eq(mload(0x24), f), t)) {
+                    mstore(0x00, 0x8baa579f) // `InvalidSignature()`.
+                    revert(0x1c, 0x04)
+                }
+                break
             }
 
             // Increment by some pseudorandom amount from [1..4294967296].
