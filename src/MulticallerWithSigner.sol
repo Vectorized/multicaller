@@ -48,26 +48,26 @@ contract MulticallerWithSigner {
     /**
      * @dev For EIP-712 signature digest calculation for the
      *      `aggregateWithSigner` function.
-     *      `keccak256("AggregateWithSigner(address[] targets,bytes[] data,uint256[] values,uint256 nonce,uint256 nonceSalt)")`.
+     *      `keccak256("AggregateWithSigner(address signer,address[] targets,bytes[] data,uint256[] values,uint256 nonce,uint256 nonceSalt)")`.
      */
     bytes32 private constant _AGGREGATE_WITH_SIGNER_TYPEHASH =
-        0x7d4195b902a78aa23ae8c64d4cecdf8424f3171e7c7e34ed94e6fab3efd018ab;
+        0xfb989fd34c8af81a76f18167f528fc7315f92cacc19a0e63215abd54633f8a28;
 
     /**
      * @dev For EIP-712 signature digest calculation for the
      *      `invalidateNoncesForSigner` function.
-     *      `keccak256("InvalidateNoncesForSigner(uint256[] nonces,uint256 nonceSalt)")`.
+     *      `keccak256("InvalidateNoncesForSigner(address signer,uint256[] nonces,uint256 nonceSalt)")`.
      */
     bytes32 private constant _INVALIDATE_NONCES_FOR_SIGNER_TYPEHASH =
-        0xe75b4aefef1358e66ac7ed2f180022e0a7f661dcd2781630ce58e05bb8bdb1c1;
+        0x12b047058eea3df4085cdc159a103d9c100c4e78cfb7029cc39d02cb8b9e48f5;
 
     /**
      * @dev For EIP-712 signature digest calculation for the
      *      `incrementNonceSaltForSigner` function.
-     *      `keccak256("IncrementNonceSaltForSigner(uint256 nonceSalt)")`.
+     *      `keccak256("IncrementNonceSaltForSigner(address signer,uint256 nonceSalt)")`.
      */
     bytes32 private constant _INCREMENT_NONCE_SALT_FOR_SIGNER_TYPEHASH =
-        0x898da98c106c91ce6f05405740b0ed23b5c4dc847a0dd1996fb93189d8310bef;
+        0xfa181078c7d1d4d369301511d3c5611e9367d0cebbf65eefdee9dfc75849c1d3;
 
     /**
      * @dev For EIP-712 signature digest calculation.
@@ -194,12 +194,13 @@ contract MulticallerWithSigner {
 
             // Layout the fields of the struct hash.
             mstore(returndatasize(), _AGGREGATE_WITH_SIGNER_TYPEHASH)
-            mstore(0x20, targetsHash)
-            mstore(0x40, dataHash)
-            mstore(0x60, valuesHash)
-            mstore(0x80, nonce)
-            mstore(0xa0, sload(add(signer, address()))) // Store the nonce salt.
-            mstore(0x40, keccak256(returndatasize(), 0xc0)) // Compute and store the struct hash.
+            mstore(0x20, signer)
+            mstore(0x40, targetsHash)
+            mstore(0x60, dataHash)
+            mstore(0x80, valuesHash)
+            mstore(0xa0, nonce)
+            mstore(0xc0, sload(add(signer, address()))) // Store the nonce salt.
+            mstore(0x40, keccak256(returndatasize(), 0xe0)) // Compute and store the struct hash.
             // Layout the fields of the domain separator.
             mstore(0x60, _DOMAIN_TYPEHASH)
             mstore(0x80, _NAME_HASH)
@@ -210,16 +211,24 @@ contract MulticallerWithSigner {
             // Layout the fields of `ecrecover`.
             mstore(returndatasize(), 0x1901) // Store "\x19\x01".
             let digest := keccak256(0x1e, 0x42) // Compute the digest.
-            let signatureIsValid := 0
-            if eq(signature.length, 65) {
-                mstore(returndatasize(), digest) // Store the digest.
-                calldatacopy(0x40, signature.offset, signature.length) // Copy `r`, `s`, `v`.
-                mstore(0x20, byte(returndatasize(), mload(0x80))) // `v`.
-                let t := staticcall(gas(), 1, 0x00, 0x80, 0x01, 0x20)
-                signatureIsValid := mul(returndatasize(), eq(signer, mload(t)))
-            }
-            // ERC1271 fallback.
-            if iszero(signatureIsValid) {
+            for {} 1 {} {
+                if eq(signature.length, 64) {
+                    mstore(returndatasize(), digest) // Store the digest.
+                    let vs := calldataload(add(signature.offset, 0x20))
+                    mstore(0x20, add(shr(255, vs), 27)) // `v`.
+                    mstore(0x40, calldataload(signature.offset)) // `r`.
+                    mstore(0x60, shr(1, shl(1, vs))) // `s`.
+                    let t := staticcall(gas(), 1, 0x00, 0x80, 0x01, 0x20)
+                    if iszero(or(iszero(returndatasize()), xor(signer, mload(t)))) { break }
+                }
+                if eq(signature.length, 65) {
+                    mstore(returndatasize(), digest) // Store the digest.
+                    calldatacopy(0x40, signature.offset, signature.length) // Copy `r`, `s`, `v`.
+                    mstore(0x20, byte(returndatasize(), mload(0x80))) // `v`.
+                    let t := staticcall(gas(), 1, 0x00, 0x80, 0x01, 0x20)
+                    if iszero(or(iszero(returndatasize()), xor(signer, mload(t)))) { break }
+                }
+                // ERC1271 fallback.
                 let f := shl(224, 0x1626ba7e) // `isValidSignature(bytes32,bytes)`.
                 mstore(0x00, f)
                 mstore(0x04, digest)
@@ -227,7 +236,11 @@ contract MulticallerWithSigner {
                 mstore(0x44, signature.length)
                 calldatacopy(0x64, signature.offset, signature.length)
                 let t := staticcall(gas(), signer, 0x00, add(signature.length, 0x64), 0x24, 0x20)
-                signatureIsValid := and(eq(mload(0x24), f), t)
+                if iszero(and(eq(mload(0x24), f), t)) {
+                    mstore(0x00, 0x8baa579f) // `InvalidSignature()`.
+                    revert(0x1c, 0x04)
+                }
+                break
             }
 
             // Check the nonce.
@@ -236,7 +249,7 @@ contract MulticallerWithSigner {
             let bucketSlot := keccak256(0x20, 0x3f)
             let bucketValue := sload(bucketSlot)
             let bit := shl(and(0xff, nonce), 1)
-            if or(iszero(signatureIsValid), and(bit, bucketValue)) {
+            if and(bit, bucketValue) {
                 mstore(0x00, 0x8baa579f) // `InvalidSignature()`.
                 revert(0x1c, 0x04)
             }
@@ -362,11 +375,12 @@ contract MulticallerWithSigner {
             let end := shl(5, nonces.length)
             // Layout the fields of the struct hash.
             mstore(returndatasize(), _INVALIDATE_NONCES_FOR_SIGNER_TYPEHASH)
+            mstore(0x20, signer)
             // Compute and store `keccak256(abi.encodePacked(nonces))`.
-            calldatacopy(0x20, nonces.offset, end)
-            mstore(0x20, keccak256(0x20, end))
-            mstore(0x40, sload(add(signer, address()))) // Store the nonce salt.
-            mstore(0x40, keccak256(returndatasize(), 0x60)) // Compute and store the struct hash.
+            calldatacopy(0x40, nonces.offset, end)
+            mstore(0x40, keccak256(0x40, end))
+            mstore(0x60, sload(add(signer, address()))) // Store the nonce salt.
+            mstore(0x40, keccak256(returndatasize(), 0x80)) // Compute and store the struct hash.
             // Layout the fields of the domain separator.
             mstore(0x60, _DOMAIN_TYPEHASH)
             mstore(0x80, _NAME_HASH)
@@ -377,16 +391,24 @@ contract MulticallerWithSigner {
             // Layout the fields of `ecrecover`.
             mstore(returndatasize(), 0x1901) // Store "\x19\x01".
             let digest := keccak256(0x1e, 0x42) // Compute the digest.
-            let signatureIsValid := 0
-            if eq(signature.length, 65) {
-                mstore(returndatasize(), digest) // Store the digest.
-                calldatacopy(0x40, signature.offset, signature.length) // Copy `r`, `s`, `v`.
-                mstore(0x20, byte(returndatasize(), mload(0x80))) // `v`.
-                let t := staticcall(gas(), 1, 0x00, 0x80, 0x01, 0x20)
-                signatureIsValid := mul(returndatasize(), eq(signer, mload(t)))
-            }
-            // ERC1271 fallback.
-            if iszero(signatureIsValid) {
+            for {} 1 {} {
+                if eq(signature.length, 64) {
+                    mstore(returndatasize(), digest) // Store the digest.
+                    let vs := calldataload(add(signature.offset, 0x20))
+                    mstore(0x20, add(shr(255, vs), 27)) // `v`.
+                    mstore(0x40, calldataload(signature.offset)) // `r`.
+                    mstore(0x60, shr(1, shl(1, vs))) // `s`.
+                    let t := staticcall(gas(), 1, 0x00, 0x80, 0x01, 0x20)
+                    if iszero(or(iszero(returndatasize()), xor(signer, mload(t)))) { break }
+                }
+                if eq(signature.length, 65) {
+                    mstore(returndatasize(), digest) // Store the digest.
+                    calldatacopy(0x40, signature.offset, signature.length) // Copy `r`, `s`, `v`.
+                    mstore(0x20, byte(returndatasize(), mload(0x80))) // `v`.
+                    let t := staticcall(gas(), 1, 0x00, 0x80, 0x01, 0x20)
+                    if iszero(or(iszero(returndatasize()), xor(signer, mload(t)))) { break }
+                }
+                // ERC1271 fallback.
                 let f := shl(224, 0x1626ba7e) // `isValidSignature(bytes32,bytes)`.
                 mstore(0x00, f)
                 mstore(0x04, digest)
@@ -394,11 +416,11 @@ contract MulticallerWithSigner {
                 mstore(0x44, signature.length)
                 calldatacopy(0x64, signature.offset, signature.length)
                 let t := staticcall(gas(), signer, 0x00, add(signature.length, 0x64), 0x24, 0x20)
-                signatureIsValid := and(eq(mload(0x24), f), t)
-            }
-            if iszero(signatureIsValid) {
-                mstore(0x00, 0x8baa579f) // `InvalidSignature()`.
-                revert(0x1c, 0x04)
+                if iszero(and(eq(mload(0x24), f), t)) {
+                    mstore(0x00, 0x8baa579f) // `InvalidSignature()`.
+                    revert(0x1c, 0x04)
+                }
+                break
             }
 
             mstore(0x00, signer)
@@ -483,8 +505,9 @@ contract MulticallerWithSigner {
             let nonceSalt := sload(nonceSaltSlot)
             // Layout the fields of the struct hash.
             mstore(returndatasize(), _INCREMENT_NONCE_SALT_FOR_SIGNER_TYPEHASH)
-            mstore(0x20, nonceSalt) // Store the nonce salt.
-            mstore(0x40, keccak256(returndatasize(), 0x40)) // Compute and store the struct hash.
+            mstore(0x20, signer)
+            mstore(0x40, nonceSalt) // Store the nonce salt.
+            mstore(0x40, keccak256(returndatasize(), 0x60)) // Compute and store the struct hash.
             // Layout the fields of the domain separator.
             mstore(0x60, _DOMAIN_TYPEHASH)
             mstore(0x80, _NAME_HASH)
@@ -495,16 +518,24 @@ contract MulticallerWithSigner {
             // Layout the fields of `ecrecover`.
             mstore(returndatasize(), 0x1901) // Store "\x19\x01".
             let digest := keccak256(0x1e, 0x42) // Compute the digest.
-            let signatureIsValid := 0
-            if eq(signature.length, 65) {
-                mstore(returndatasize(), digest) // Store the digest.
-                calldatacopy(0x40, signature.offset, signature.length) // Copy `r`, `s`, `v`.
-                mstore(0x20, byte(returndatasize(), mload(0x80))) // `v`.
-                let t := staticcall(gas(), 1, 0x00, 0x80, 0x01, 0x20)
-                signatureIsValid := mul(returndatasize(), eq(signer, mload(t)))
-            }
-            // ERC1271 fallback.
-            if iszero(signatureIsValid) {
+            for {} 1 {} {
+                if eq(signature.length, 64) {
+                    mstore(returndatasize(), digest) // Store the digest.
+                    let vs := calldataload(add(signature.offset, 0x20))
+                    mstore(0x20, add(shr(255, vs), 27)) // `v`.
+                    mstore(0x40, calldataload(signature.offset)) // `r`.
+                    mstore(0x60, shr(1, shl(1, vs))) // `s`.
+                    let t := staticcall(gas(), 1, 0x00, 0x80, 0x01, 0x20)
+                    if iszero(or(iszero(returndatasize()), xor(signer, mload(t)))) { break }
+                }
+                if eq(signature.length, 65) {
+                    mstore(returndatasize(), digest) // Store the digest.
+                    calldatacopy(0x40, signature.offset, signature.length) // Copy `r`, `s`, `v`.
+                    mstore(0x20, byte(returndatasize(), mload(0x80))) // `v`.
+                    let t := staticcall(gas(), 1, 0x00, 0x80, 0x01, 0x20)
+                    if iszero(or(iszero(returndatasize()), xor(signer, mload(t)))) { break }
+                }
+                // ERC1271 fallback.
                 let f := shl(224, 0x1626ba7e) // `isValidSignature(bytes32,bytes)`.
                 mstore(0x00, f)
                 mstore(0x04, digest)
@@ -512,11 +543,11 @@ contract MulticallerWithSigner {
                 mstore(0x44, signature.length)
                 calldatacopy(0x64, signature.offset, signature.length)
                 let t := staticcall(gas(), signer, 0x00, add(signature.length, 0x64), 0x24, 0x20)
-                signatureIsValid := and(eq(mload(0x24), f), t)
-            }
-            if iszero(signatureIsValid) {
-                mstore(0x00, 0x8baa579f) // `InvalidSignature()`.
-                revert(0x1c, 0x04)
+                if iszero(and(eq(mload(0x24), f), t)) {
+                    mstore(0x00, 0x8baa579f) // `InvalidSignature()`.
+                    revert(0x1c, 0x04)
+                }
+                break
             }
 
             // Increment by some pseudorandom amount from [1..4294967296].
