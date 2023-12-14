@@ -1,3 +1,5 @@
+Original at: https://gist.github.com/0xth0mas/59ea1f31f16e058da27b0607c4dc24b8
+
 # General
 
 No major vulnerabilities were identified.
