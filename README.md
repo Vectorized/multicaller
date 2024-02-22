@@ -23,6 +23,10 @@ Please open an issue if you need help to deploy to an EVM chain of your choice.
   - Multicaller: [`0x0000000000002Bdbf1Bf3279983603Ec279CC6dF`](https://sepolia.etherscan.io/address/0x0000000000002Bdbf1Bf3279983603Ec279CC6dF)
   - MulticallerWithSender: [`0x00000000002Fd5Aeb385D324B580FCa7c83823A0`](https://sepolia.etherscan.io/address/0x00000000002Fd5Aeb385D324B580FCa7c83823A0)
   - MulticallerWithSigner: [`0x000000000000D9ECebf3C23529de49815Dac1c4c`](https://sepolia.etherscan.io/address/0x000000000000D9ECebf3C23529de49815Dac1c4c)
+- Holesky 
+  - Multicaller: [`0x0000000000002Bdbf1Bf3279983603Ec279CC6dF`](https://holesky.etherscan.io/address/0x0000000000002Bdbf1Bf3279983603Ec279CC6dF)
+  - MulticallerWithSender: [`0x00000000002Fd5Aeb385D324B580FCa7c83823A0`](https://holesky.etherscan.io/address/0x00000000002Fd5Aeb385D324B580FCa7c83823A0)
+  - MulticallerWithSigner: [`0x000000000000D9ECebf3C23529de49815Dac1c4c`](https://holesky.etherscan.io/address/0x000000000000D9ECebf3C23529de49815Dac1c4c)
 - Polygon 
   - Multicaller: [`0x0000000000002Bdbf1Bf3279983603Ec279CC6dF`](https://polygonscan.com/address/0x0000000000002Bdbf1Bf3279983603Ec279CC6dF)
   - MulticallerWithSender: [`0x00000000002Fd5Aeb385D324B580FCa7c83823A0`](https://polygonscan.com/address/0x00000000002Fd5Aeb385D324B580FCa7c83823A0)
