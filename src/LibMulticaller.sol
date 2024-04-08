@@ -36,14 +36,14 @@ library LibMulticaller {
      * @dev Returns the caller of `aggregateWithSender` on `MULTICALLER_WITH_SENDER`.
      */
     function multicallerSender() internal view returns (address result) {
-        return multicallerGetAt(MULTICALLER_WITH_SENDER);
+        return at(MULTICALLER_WITH_SENDER);
     }
 
     /**
      * @dev Returns the signer of `aggregateWithSigner` on `MULTICALLER_WITH_SIGNER`.
      */
     function multicallerSigner() internal view returns (address result) {
-        return multicallerGetAt(MULTICALLER_WITH_SIGNER);
+        return at(MULTICALLER_WITH_SIGNER);
     }
 
     /**
@@ -52,7 +52,7 @@ library LibMulticaller {
      *      Otherwise, returns `msg.sender`.
      */
     function sender() internal view returns (address result) {
-        return getAt(MULTICALLER_WITH_SENDER);
+        return resolve(MULTICALLER_WITH_SENDER);
     }
 
     /**
@@ -61,26 +61,34 @@ library LibMulticaller {
      *      Otherwise, returns `msg.sender`.
      */
     function signer() internal view returns (address) {
-        return getAt(MULTICALLER_WITH_SIGNER);
+        return resolve(MULTICALLER_WITH_SIGNER);
     }
 
-    function multicallerGetAt(address loc) internal view returns (address result) {
+    /**
+     * @dev Returns the caller or signer at `a`.
+     * @param a The multicaller with sender / signer.
+     */
+    function at(address a) internal view returns (address result) {
         /// @solidity memory-safe-assembly
         assembly {
             mstore(0x00, 0x00)
-            if iszero(staticcall(gas(), loc, codesize(), 0x00, 0x00, 0x20)) {
+            if iszero(staticcall(gas(), a, codesize(), 0x00, 0x00, 0x20)) {
                 revert(codesize(), codesize()) // For better gas estimation.
             }
             result := mload(0x00)
         }
     }
 
-    function getAt(address loc) internal view returns (address result) {
+    /**
+     * @dev Returns the caller or signer at `a`, if the caller is `a`.
+     * @param a The multicaller with sender / signer.
+     */
+    function resolve(address a) internal view returns (address result) {
         /// @solidity memory-safe-assembly
         assembly {
             mstore(0x00, caller())
-            if eq(caller(), loc) {
-                if iszero(staticcall(gas(), loc, codesize(), 0x00, 0x00, 0x20)) {
+            if eq(caller(), a) {
+                if iszero(staticcall(gas(), a, codesize(), 0x00, 0x00, 0x20)) {
                     revert(codesize(), codesize()) // For better gas estimation.
                 }
             }
