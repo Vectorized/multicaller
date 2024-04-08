@@ -447,7 +447,7 @@ contract MulticallerTest is TestPlus {
         }
     }
 
-    function _generateSignature(_TestTemps memory t) internal {
+    function _generateSignature(_TestTemps memory t) internal view {
         unchecked {
             bytes32[] memory dataHashes = new bytes32[](t.data.length);
             for (uint256 i; i < t.data.length; ++i) {
@@ -929,7 +929,7 @@ contract MulticallerTest is TestPlus {
         uint256[] memory nonces,
         address signer,
         uint256 privateKey
-    ) internal returns (bytes memory signature) {
+    ) internal view returns (bytes memory signature) {
         bytes32 digest = keccak256(
             abi.encodePacked(
                 "\x19\x01",
@@ -952,6 +952,7 @@ contract MulticallerTest is TestPlus {
 
     function _generateIncrementNonceSaltSignature(address signer, uint256 privateKey)
         internal
+        view
         returns (bytes memory signature)
     {
         bytes32 digest = keccak256(
