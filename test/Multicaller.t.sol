@@ -951,7 +951,8 @@ contract MulticallerTest is TestPlus {
     }
 
     function _generateIncrementNonceSaltSignature(address signer, uint256 privateKey)
-        internal view 
+        internal
+        view
         returns (bytes memory signature)
     {
         bytes32 digest = keccak256(
