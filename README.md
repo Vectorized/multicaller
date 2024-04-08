@@ -2,6 +2,7 @@
 
 [![NPM][npm-shield]][npm-url]
 [![CI][ci-shield]][ci-url]
+[![Solidity][solidity-shield]][solidity-ci-url]
 
 Efficiently call multiple contracts in a single transaction.
 
@@ -100,3 +101,6 @@ We would like to thank our [reviewers and contributors](credits.txt) for their i
 
 [ci-shield]: https://img.shields.io/github/actions/workflow/status/vectorized/multicaller/ci.yml?label=build&branch=main
 [ci-url]: https://github.com/vectorized/multicaller/actions/workflows/ci.yml
+
+[solidity-shield]: https://img.shields.io/badge/solidity-%3E=0.8.10%20%3C=0.8.25-aa6746
+[solidity-ci-url]: https://github.com/Vectorized/solady/actions/workflows/ci-all-via-ir.yml
