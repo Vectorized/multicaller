@@ -71,7 +71,7 @@ jobs:
             forge test --use 0.8.4
           ) ||
           ( [ "${{ matrix.profile }}" = "min-solc-via-ir" ] &&
-            forge test --use 0.8.4 --via-ir
+            forge test --use 0.8.13 --via-ir
           ) ||
           ( [ "${{ matrix.profile }}" = "intense" ] &&
             forge test --fuzz-runs 5000

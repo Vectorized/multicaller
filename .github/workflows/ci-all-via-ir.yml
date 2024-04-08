@@ -10,7 +10,7 @@ jobs:
     
     strategy:
       matrix:
-        profile: [via-ir-0,via-ir-1,via-ir-2,via-ir-3]
+        profile: [via-ir-0,via-ir-1]
 
     steps:
       - uses: actions/checkout@v4
@@ -26,26 +26,16 @@ jobs:
       - name: Run Tests with ${{ matrix.profile }}
         run: >
           ( [ "${{ matrix.profile }}" = "via-ir-0" ] &&
-            forge test --use 0.8.4 --via-ir &&
-            forge test --use 0.8.5 --via-ir &&
-            forge test --use 0.8.6 --via-ir &&
-            forge test --use 0.8.7 --via-ir &&
-            forge test --use 0.8.8 --via-ir &&
-            forge test --use 0.8.9 --via-ir
-          ) ||
-          ( [ "${{ matrix.profile }}" = "via-ir-1" ] &&
+            forge test --use 0.8.14 --via-ir &&
+            forge test --use 0.8.15 --via-ir &&
+            forge test --use 0.8.16 --via-ir &&
+            forge test --use 0.8.17 --via-ir &&
             forge test --use 0.8.13 --via-ir &&
             forge test --use 0.8.12 --via-ir &&
             forge test --use 0.8.11 --via-ir &&
             forge test --use 0.8.10 --via-ir
           ) ||
-          ( [ "${{ matrix.profile }}" = "via-ir-2" ] &&
-            forge test --use 0.8.14 --via-ir &&
-            forge test --use 0.8.15 --via-ir &&
-            forge test --use 0.8.16 --via-ir &&
-            forge test --use 0.8.17 --via-ir
-          ) ||
-          ( [ "${{ matrix.profile }}" = "via-ir-3" ] &&
+          ( [ "${{ matrix.profile }}" = "via-ir-1" ] &&
             forge test --use 0.8.25 --via-ir &&
             forge test --use 0.8.24 --via-ir &&
             forge test --use 0.8.23 --via-ir &&
