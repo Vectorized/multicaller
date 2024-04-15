@@ -122,7 +122,7 @@ contract TestPlus is Test {
         signer = vm.addr(privateKey);
     }
 
-    /// @dev Rounds up the free memory pointer the the next word boundary.
+    /// @dev Rounds up the free memory pointer the next word boundary.
     /// Sometimes, some Solidity operations causes the free memory pointer to be misaligned.
     function _roundUpFreeMemoryPointer() internal pure {
         // To prevent a solidity 0.8.13 bug.
