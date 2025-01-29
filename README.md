@@ -44,6 +44,14 @@ Please open an issue if you need help to deploy to an EVM chain of your choice.
   - Multicaller: [`0x0000000000002Bdbf1Bf3279983603Ec279CC6dF`](https://arbiscan.io/address/0x0000000000002Bdbf1Bf3279983603Ec279CC6dF)
   - MulticallerWithSender: [`0x00000000002Fd5Aeb385D324B580FCa7c83823A0`](https://arbiscan.io/address/0x00000000002Fd5Aeb385D324B580FCa7c83823A0)
   - MulticallerWithSigner: [`0x000000000000D9ECebf3C23529de49815Dac1c4c`](https://arbiscan.io/address/0x000000000000D9ECebf3C23529de49815Dac1c4c)
+- Base
+  - Multicaller: [`0x0000000000002Bdbf1Bf3279983603Ec279CC6dF`](https://basescan.org/address/0x0000000000002Bdbf1Bf3279983603Ec279CC6dF)
+  - MulticallerWithSender: [`0x00000000002Fd5Aeb385D324B580FCa7c83823A0`](https://basescan.org/address/0x00000000002Fd5Aeb385D324B580FCa7c83823A0)
+  - MulticallerWithSigner: [`0x000000000000D9ECebf3C23529de49815Dac1c4c`](https://basescan.org/address/0x000000000000D9ECebf3C23529de49815Dac1c4c)
+- Blast
+  - Multicaller: [`0x0000000000002Bdbf1Bf3279983603Ec279CC6dF`](https://blastscan.io/address/0x0000000000002Bdbf1Bf3279983603Ec279CC6dF)
+  - MulticallerWithSender: [`0x00000000002Fd5Aeb385D324B580FCa7c83823A0`](https://blastscan.io/address/0x00000000002Fd5Aeb385D324B580FCa7c83823A0)
+  - MulticallerWithSigner: [`0x000000000000D9ECebf3C23529de49815Dac1c4c`](https://blastscan.io/address/0x000000000000D9ECebf3C23529de49815Dac1c4c)
 
 ## Contracts
 
